@@ -11,12 +11,16 @@ function activate(context) {
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "hatchways" is now active!');
+    const folderPath = `/home/workspace/vscode-extension`;
+    const folderUri = vscode.Uri.parse(folderPath);
+    vscode.commands.executeCommand(`vscode.openFolder`, folderUri);
+    vscode.window.showInformationMessage(folderPath);
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with registerCommand
     // The commandId parameter must match the command field in package.json
     // The code you place here will be executed every time your command is executed
     // Display a message box to the user
-    vscode.window.showInformationMessage('Hello World from Hatchways!');
+    vscode.window.showInformationMessage('Hello World from Hatchaways!');
     // Let's determine the workspace folder (assuming a single-root workspace)
     let workspaceFolders = vscode.workspace.workspaceFolders;
     console.log(workspaceFolders);
@@ -35,7 +39,7 @@ function activate(context) {
         }
         vscode.window.showInformationMessage(`Ran NPM install ${stdout}`);
     });
-    vscode.window.createWebviewPanel('myTerminal', 'My Terminal', vscode.ViewColumn.One);
+    vscode.window.createWebviewPanel('myTerminal', 'My Terminal', vscode.ViewColumn.Beside);
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated
