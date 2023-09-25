@@ -1,35 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deactivate = exports.activate = void 0;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+exports.activate = void 0;
 const vscode = require("vscode");
 const socket_io_client_1 = require("socket.io-client");
-class MyTreeItem extends vscode.TreeItem {
-    constructor(label, collapsibleState) {
-        super(label, collapsibleState);
-    }
-}
-class MyTreeDataProvider {
-    constructor() {
-        this._onDidChangeTreeData = new vscode.EventEmitter();
-        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-    }
-    getTreeItem(element) {
-        return element;
-    }
-    getFirstItem() {
-        return new MyTreeItem('Hello', vscode.TreeItemCollapsibleState.None);
-    }
-    getChildren(element) {
-        if (!element) {
-            return Promise.resolve([
-                new MyTreeItem('Hello', vscode.TreeItemCollapsibleState.None)
-            ]);
-        }
-        return Promise.resolve([]);
-    }
-}
+const extension_1 = require("./extension");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -68,8 +42,7 @@ function activate(context) {
     // 	}
     // 	vscode.window.showInformationMessage(`Ran NPM install ${stdout}`);
     // });
-    const uniqueId = Math.floor(Math.random() * 100);
-    const treeDataProvider = new MyTreeDataProvider();
+    const treeDataProvider = new extension_1.MyTreeDataProvider();
     const treeView = vscode.window.createTreeView('myTreeView', { treeDataProvider });
     context.subscriptions.push(treeView);
     vscode.commands.executeCommand("myTreeView.focus");
@@ -77,27 +50,17 @@ function activate(context) {
     // setTimeout(() => {
     // }, 3000); // Delaying by 1 second. You might need to adjust this.
     const socket = (0, socket_io_client_1.io)('http://localhost:4000');
-    socket.on('test', () => {
-        vscode.window.showInformationMessage('Connect to interview!');
-    });
     // Listen to changes from other users and apply them
     socket.on('cursorMove', (data) => {
-        vscode.window.showInformationMessage(data.uniqueId);
-        // if (uniqueId === data.uniqueId) {
-        // 	return				
-        // }
-        let startPosition = new vscode.Position(data.selections[0].start.line, data.selections[0].start.character);
-        let endPosition = new vscode.Position(data.selections[0].end.line, data.selections[0].end.character);
+        console.log(data);
+        let otherUserCursorPosition = data.selections[0].active; // This should be updated from the server.
         const activeEditor = vscode.window.activeTextEditor;
         const cursorDecoration = vscode.window.createTextEditorDecorationType({
             backgroundColor: 'rgba(255,0,0,0.3)',
             border: '2px solid red'
         });
-        if (data.filePath !== activeEditor?.document.uri.path) {
-            vscode.window.showTextDocument(vscode.Uri.file(data.filePath), { viewColumn: vscode.ViewColumn.One });
-        }
         activeEditor?.setDecorations(cursorDecoration, [{
-                range: new vscode.Range(startPosition, endPosition)
+                range: new vscode.Range(otherUserCursorPosition, otherUserCursorPosition.translate(0, 1))
             }]);
     });
     if (vscode.window.activeTextEditor) {
@@ -107,16 +70,11 @@ function activate(context) {
                 console.log(event.textEditor);
                 // todo get open file
                 socket.emit('cursorMove', {
-                    selections: event.selections,
-                    uniqueId,
-                    filePath: event.textEditor.document.uri.path
+                    selections: event.selections
                 });
             }
         }));
     }
 }
 exports.activate = activate;
-// This method is called when your extension is deactivated
-function deactivate() { }
-exports.deactivate = deactivate;
-//# sourceMappingURL=extension.js.map
+//# sourceMappingURL=activate.js.map

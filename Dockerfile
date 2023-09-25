@@ -83,4 +83,7 @@ RUN \
 # Default exposed port if none is specified
 EXPOSE 3000
 
-ENTRYPOINT [ "/bin/sh", "-c", "exec ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --host 0.0.0.0 --without-connection-token \"${@}\"", "--" ]
+COPY script.sh /home/script.sh
+COPY vscode-extension/. /home/workspace/vscode-extension/.
+
+ENTRYPOINT [ "/home/script.sh" ]
