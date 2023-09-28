@@ -1,54 +1,57 @@
 {
-  "name": "hatchways",
-  "displayName": "Hatchways",
-  "description": "Extension to run the Hatchways Interviewing Platform",
-  "version": "0.0.3",
+  "name": "hatchways-extension",
+  "displayName": "Hatchways Extension",
+  "description": "",
+  "version": "0.0.1",
   "engines": {
     "vscode": "^1.82.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onStartupFinished"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "hatchways.helloWorld",
-        "title": "Hello World"
-      }
-    ],
     "viewsContainers": {
-      "panel": [
+      "activitybar": [
         {
-          "id": "yourContainer",
-          "title": "Your Container",
-          "icon": "test.svg"
+          "id": "hatchways-sidebar-view",
+          "title": "Settings",
+          "icon": "media/hatchways.svg"
         }
       ]
     },
     "views": {
-      "yourContainer": [
+      "hatchways-sidebar-view": [
         {
-          "id": "myTreeView",
-          "name": "Your Tree View"
+          "type": "webview",
+          "id": "hatchways-sidebar",
+          "name": "hatchways",
+          "icon": "media/hatchways.svg",
+          "contextualTitle": "Hatchways Settings"
         }
       ]
-    }
+    },
+    "commands": [
+      {
+        "command": "hatchways.welcome",
+        "title": "Hatchways: Welcome"
+      }
+    ]
   },
   "scripts": {
-    "vscode:prepublish": "yarn run compile",
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
+    "@types/react": "^18.2.23",
+    "@types/react-dom": "^18.2.8",
     "@types/vscode": "^1.82.0",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
@@ -56,9 +59,16 @@
     "eslint": "^8.47.0",
     "glob": "^10.3.3",
     "mocha": "^10.2.0",
-    "typescript": "^5.1.6"
-  },  
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
   "dependencies": {
-    "socket.io-client": "4.6.2"
+    "css-loader": "^6.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.4.4"
   }
 }
