@@ -1,25 +1,17 @@
-import { SidebarProvider } from "./SidebarProvider";
-import { WelcomePanel } from "./WelcomePanel";
-import * as vscode from "vscode";
+import * as vscode from 'vscode'
+import { Sidebar } from './Sidebar'
+import { WelcomePanel } from './WelcomePage'
 
 export function activate(context: vscode.ExtensionContext) {
-  const sidebarProvider = new SidebarProvider(context.extensionUri);
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      "hatchways-sidebar",
-      sidebarProvider
-    )
-  );
+	const provider = new Sidebar(context.extensionUri)
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand("hatchways.welcome", async () => {
-      // Open Welcome command
-      WelcomePanel.createOrShow(context.extensionUri);
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(Sidebar.viewType, provider))
 
-      // Open Sidebar view
-      await vscode.commands.executeCommand(
-        "workbench.view.extension.hatchways-sidebar-view"
-      );
-    })
-  );
+	vscode.commands.registerCommand(
+		'hatchways:openVueApp', () => 
+			{
+				WelcomePanel.createOrShow(context.extensionUri);
+			}
+	)
 }

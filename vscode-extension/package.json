@@ -1,74 +1,78 @@
 {
-  "name": "hatchways-extension",
-  "displayName": "Hatchways Extension",
+  "name": "hatchways",
+  "displayName": "Hatchways",
   "description": "",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.82.0"
+    "vscode": "^1.74.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "concurrently \"tsc -p ./tsconfig.extension.json --skipLibCheck\" \"vite build\" \"tailwindcss -i ./src/assets/css/main.css -o ./dist/output.css\"",
+    "watch": "concurrently \"tsc -w -p ./tsconfig.extension.json --skipLibCheck\" \"vite build --watch\" \"tailwindcss -i ./src/assets/css/main.css -o ./dist/output.css --watch\"",
+    "lint": "eslint \"src/**/*.{ts,vue}\"",
+    "typecheck": "vue-tsc --noEmit --skipLibCheck",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
+  },
   "contributes": {
+    "commands": [ 
+        {
+            "command": "hatchways:openVueApp", 
+            "title": "Open Vue App"
+        }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "hatchways-sidebar-view",
-          "title": "Settings",
-          "icon": "media/hatchways.svg"
+          "id": "hatchways-base-view",
+          "title": "Hatchways Settings",
+          "icon": "src/assets/img/hatchways.svg"
         }
       ]
     },
     "views": {
-      "hatchways-sidebar-view": [
+      "hatchways-base-view": [
         {
           "type": "webview",
-          "id": "hatchways-sidebar",
-          "name": "hatchways",
-          "icon": "media/hatchways.svg",
+          "id": "base-view-sidebar",
+          "name": "Hatchways Settings",
+          "icon": "src/assets/img/hatchways.svg",
           "contextualTitle": "Hatchways Settings"
         }
       ]
-    },
-    "commands": [
-      {
-        "command": "hatchways.welcome",
-        "title": "Hatchways: Welcome"
-      }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
-  },
-  "devDependencies": {
-    "@types/mocha": "^10.0.1",
-    "@types/node": "16.x",
-    "@types/react": "^18.2.23",
-    "@types/react-dom": "^18.2.8",
-    "@types/vscode": "^1.82.0",
-    "@typescript-eslint/eslint-plugin": "^6.4.1",
-    "@typescript-eslint/parser": "^6.4.1",
-    "@vscode/test-electron": "^2.3.4",
-    "eslint": "^8.47.0",
-    "glob": "^10.3.3",
-    "mocha": "^10.2.0",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.1.6",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4"
+    }
   },
   "dependencies": {
-    "css-loader": "^6.8.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "style-loader": "^3.3.3",
-    "ts-loader": "^9.4.4"
+    "@intlify/unplugin-vue-i18n": "^0.8.1",
+    "@vitest/ui": "^0.26.2",
+    "vue": "^3.2.45",
+    "vue-i18n": "9"
+  },
+  "devDependencies": {
+    "@iconify-json/mdi": "^1.1.39",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/user-event": "^14.4.3",
+    "@testing-library/vue": "^6.6.1",
+    "@types/jest": "^29.2.4",
+    "@types/node": "^18.11.17",
+    "@types/vscode": "^1.73.0",
+    "@typescript-eslint/eslint-plugin": "^5.42.0",
+    "@typescript-eslint/parser": "^5.42.0",
+    "@vitejs/plugin-vue": "^2.3.3",
+    "concurrently": "^7.6.0",
+    "eslint": "^8.30.0",
+    "eslint-plugin-vue": "^9.8.0",
+    "jsdom": "^20.0.3",
+    "tailwindcss": "^3.2.4",
+    "typescript": "^4.8.4",
+    "unplugin-icons": "^0.14.15",
+    "vite": "^2.9.14",
+    "vitest": "^0.26.2",
+    "vue-tsc": "^0.40.6"
   }
 }
