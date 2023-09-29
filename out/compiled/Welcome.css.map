@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "file": "Welcome.css",
+  "sources": [
+    "Welcome.svelte"
+  ],
+  "sourcesContent": [
+    "<script lang=\"ts\">\"use strict\";\n</script>\n<div class=\"body\">\n   <h1> <i class=\"fa fa-laptop icon\"></i>Welcome to Hatchways Live Coding Interview Tool</h1>\n   <h3 class=\"subtitle\"> Hatchways Live Coding Interview tool allows you to seamlessly interview candidates through all type of assessments: backend, frontend, and full-stack.</h3>\n   <div class=\"item\"><i class=\"fa fa-code list-icon\"></i>Peer Programming</div>\n   <div class=\"item\"><i class=\"fa fa-cloud list-icon\"></i>Run your project on the cloud</div>\n   <div class=\"item\"><i class=\"fa fa-eye list-icon\"></i>See automated tests in the console</div>\n   <img src=\"https://miro.medium.com/v2/resize:fit:1400/1*KGSUgDCixlZU7OIY-kgZ5A.png\" width=\"600\"/>\n</div>\n<style>\n   .body {\n   padding-left: 20vw;\n   padding-right: 20vw;\n   padding-top: 10vw;\n   padding-bottom: 10vw;\n   }\n   .subtitle {\n   margin-top: 12px;\n   margin-bottom: 20px;\n   }\n   .icon {\n   margin-right: 4px;\n   }\n   .item { \n   margin-bottom: 10px;\n   }\n   .list-icon { \n   margin-right: 10px;\n   color: #2980B9;\n   }\n   img {\n   margin-top: 20px;\n   }\n</style>"
+  ],
+  "names": [],
+  "mappings": "AAWG,mBAAM,CACN,YAAY,CAAE,IAAI,CAClB,aAAa,CAAE,IAAI,CACnB,WAAW,CAAE,IAAI,CACjB,cAAc,CAAE,IAChB,CACA,uBAAU,CACV,UAAU,CAAE,IAAI,CAChB,aAAa,CAAE,IACf,CACA,mBAAM,CACN,YAAY,CAAE,GACd,CACA,mBAAM,CACN,aAAa,CAAE,IACf,CACA,wBAAW,CACX,YAAY,CAAE,IAAI,CAClB,KAAK,CAAE,OACP,CACA,iBAAI,CACJ,UAAU,CAAE,IACZ"
+}
