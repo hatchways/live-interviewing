@@ -22,6 +22,7 @@ export class WelcomePanel {
     if (WelcomePanel.currentPanel) {
       WelcomePanel.currentPanel._panel.reveal(column);
       WelcomePanel.currentPanel._update();
+      vscode.commands.executeCommand("hatchways-sidebar.focus")
       return;
     }
 
@@ -43,6 +44,7 @@ export class WelcomePanel {
     );
 
     WelcomePanel.currentPanel = new WelcomePanel(panel, extensionUri);
+    vscode.commands.executeCommand("hatchways-sidebar.focus")
   }
 
   public static kill() {

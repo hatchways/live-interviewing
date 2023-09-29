@@ -1,5 +1,6 @@
 import { getNonce } from "./getNonce";
 import * as vscode from "vscode";
+import acquire
 
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
@@ -11,8 +12,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
 
-    console.log("hello world");
-
     webviewView.webview.options = {
       // Allow scripts in the webview
       enableScripts: true,
@@ -23,13 +22,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
     webviewView.webview.onDidReceiveMessage(async (data) => {
-      console.log("data", data);
       switch (data.type) {
-        case "onInfo": {
+        case "inputName": {
           if (!data.value) {
             return;
           }
-          vscode.window.showInformationMessage(data.value);
+          vscode.window.showInformationMessage(`Hi ${data.value}, welcome to the interview!`);
           break;
         }
         case "onError": {
@@ -78,11 +76,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           <link href="${styleResetUri}" rel="stylesheet">
           <link href="${styleVSCodeUri}" rel="stylesheet">
           <link href="${mainStyleUri}" rel="stylesheet">
-         
+          <script nonce="${nonce}">
+          const tsvscode = acquireVsCodeApi();
+          </script>
        </head>
        <body>
        <script src="${scriptUri}" nonce="${nonce}">
-        const tsvscode = acquireApiVsCode();
+       
        </script>
        </body>
     </html>`;

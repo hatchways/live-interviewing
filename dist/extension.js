@@ -25,6 +25,7 @@ class WelcomePanel {
         if (WelcomePanel.currentPanel) {
             WelcomePanel.currentPanel._panel.reveal(column);
             WelcomePanel.currentPanel._update();
+            vscode.commands.executeCommand("hatchways-sidebar.focus");
             return;
         }
         // Otherwise, create a new panel.
@@ -38,6 +39,7 @@ class WelcomePanel {
             ],
         });
         WelcomePanel.currentPanel = new WelcomePanel(panel, extensionUri);
+        vscode.commands.executeCommand("hatchways-sidebar.focus");
     }
     static kill() {
         WelcomePanel.currentPanel?.dispose();
@@ -153,6 +155,85 @@ function getNonce() {
 exports.getNonce = getNonce;
 
 
+/***/ }),
+/* 4 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SidebarProvider = void 0;
+const getNonce_1 = __webpack_require__(3);
+const vscode = __webpack_require__(1);
+class SidebarProvider {
+    constructor(_extensionUri) {
+        this._extensionUri = _extensionUri;
+    }
+    resolveWebviewView(webviewView) {
+        this._view = webviewView;
+        webviewView.webview.options = {
+            // Allow scripts in the webview
+            enableScripts: true,
+            localResourceRoots: [this._extensionUri],
+        };
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        webviewView.webview.onDidReceiveMessage(async (data) => {
+            switch (data.type) {
+                case "inputName": {
+                    if (!data.value) {
+                        return;
+                    }
+                    vscode.window.showInformationMessage(`Hi ${data.value}, welcome to the interview!`);
+                    break;
+                }
+                case "onError": {
+                    if (!data.value) {
+                        return;
+                    }
+                    vscode.window.showErrorMessage(data.value);
+                    break;
+                }
+            }
+        });
+    }
+    revive(panel) {
+        this._view = panel;
+    }
+    _getHtmlForWebview(webview) {
+        const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css"));
+        const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css"));
+        // Custom JS and CSS
+        const mainStyleUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.css"));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.js"));
+        // Use a nonce to only allow a specific script to be run.
+        const nonce = (0, getNonce_1.getNonce)();
+        return `<!DOCTYPE html>
+    <html lang="en">
+       <head>
+          <meta charset="UTF-8">
+          <!--
+             Use a content security policy to only allow loading images from https or from our extension directory,
+             and only allow scripts that have a specific nonce.
+                -->
+          <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link href="${styleResetUri}" rel="stylesheet">
+          <link href="${styleVSCodeUri}" rel="stylesheet">
+          <link href="${mainStyleUri}" rel="stylesheet">
+          <script nonce="${nonce}">
+          const tsvscode = acquireVsCodeApi();
+          </script>
+       </head>
+       <body>
+       <script src="${scriptUri}" nonce="${nonce}">
+       
+       </script>
+       </body>
+    </html>`;
+    }
+}
+exports.SidebarProvider = SidebarProvider;
+
+
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -188,22 +269,17 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deactivate = exports.activate = void 0;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+const SidebarProvider_1 = __webpack_require__(4);
 const WelcomePanel_1 = __webpack_require__(2);
 const vscode = __webpack_require__(1);
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Congratulations, your extension "hatchways-live-interviewing" is now active!');
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
+    // Initialize the Sidebar
+    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri);
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider("hatchways-sidebar", sidebarProvider));
+    // Initialize the Welcome page 
     let disposable = vscode.commands.registerCommand("hatchways-live-interviewing.welcome", () => {
-        // The code you place here will be executed every time your command is executed
-        // Display a message box to the user
         WelcomePanel_1.WelcomePanel.createOrShow(context.extensionUri);
     });
     context.subscriptions.push(disposable);
