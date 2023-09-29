@@ -49,13 +49,6 @@ var app = (function () {
         node.addEventListener(event, handler, options);
         return () => node.removeEventListener(event, handler, options);
     }
-    function prevent_default(fn) {
-        return function (event) {
-            event.preventDefault();
-            // @ts-ignore
-            return fn.call(this, event);
-        };
-    }
     function attr(node, attribute, value) {
         if (value == null)
             node.removeAttribute(attribute);
@@ -394,9 +387,9 @@ var app = (function () {
 
     function create_fragment(ctx) {
     	let div;
-    	let form;
-    	let input;
     	let t0;
+    	let input;
+    	let t1;
     	let button;
     	let mounted;
     	let dispose;
@@ -404,35 +397,34 @@ var app = (function () {
     	const block = {
     		c: function create() {
     			div = element("div");
-    			form = element("form");
+    			t0 = text("Input your name to start the interview\n        ");
     			input = element("input");
-    			t0 = space();
+    			t1 = space();
     			button = element("button");
     			button.textContent = "Submit";
     			attr_dev(input, "placeholder", "Your Name");
-    			add_location(input, file, 7, 8, 168);
-    			attr_dev(button, "class", "svelte-sqajni");
-    			add_location(button, file, 8, 8, 227);
-    			add_location(form, file, 6, 4, 113);
-    			attr_dev(div, "class", "body svelte-sqajni");
-    			add_location(div, file, 5, 0, 90);
+    			attr_dev(input, "class", "svelte-94c6qv");
+    			add_location(input, file, 5, 8, 129);
+    			attr_dev(button, "class", "svelte-94c6qv");
+    			add_location(button, file, 6, 8, 188);
+    			attr_dev(div, "class", "body svelte-94c6qv");
+    			add_location(div, file, 3, 0, 57);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
-    			append_dev(div, form);
-    			append_dev(form, input);
+    			append_dev(div, t0);
+    			append_dev(div, input);
     			set_input_value(input, /*name*/ ctx[0]);
-    			append_dev(form, t0);
-    			append_dev(form, button);
+    			append_dev(div, t1);
+    			append_dev(div, button);
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(input, "input", /*input_input_handler*/ ctx[2]),
-    					listen_dev(button, "click", /*click_handler*/ ctx[3], false, false, false, false),
-    					listen_dev(form, "submit", prevent_default(/*handleSubmit*/ ctx[1]), false, true, false, false)
+    					listen_dev(input, "input", /*input_input_handler*/ ctx[1]),
+    					listen_dev(button, "click", /*click_handler*/ ctx[2], false, false, false, false)
     				];
 
     				mounted = true;
@@ -467,11 +459,6 @@ var app = (function () {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Sidebar', slots, []);
     	let name = "";
-
-    	const handleSubmit = e => {
-    		
-    	};
-
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -487,7 +474,7 @@ var app = (function () {
     		tsvscode.postMessage({ type: 'inputName', value: name });
     	};
 
-    	$$self.$capture_state = () => ({ name, handleSubmit });
+    	$$self.$capture_state = () => ({ name });
 
     	$$self.$inject_state = $$props => {
     		if ('name' in $$props) $$invalidate(0, name = $$props.name);
@@ -497,7 +484,7 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [name, handleSubmit, input_input_handler, click_handler];
+    	return [name, input_input_handler, click_handler];
     }
 
     class Sidebar extends SvelteComponentDev {

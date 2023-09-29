@@ -3,19 +3,116 @@
 /******/ 	var __webpack_modules__ = ([
 /* 0 */,
 /* 1 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SidebarProvider = void 0;
+const getNonce_1 = __webpack_require__(2);
+const vscode = __webpack_require__(3);
+class SidebarProvider {
+    constructor(_extensionUri) {
+        this._extensionUri = _extensionUri;
+    }
+    resolveWebviewView(webviewView) {
+        this._view = webviewView;
+        webviewView.webview.options = {
+            // Allow scripts in the webview
+            enableScripts: true,
+            localResourceRoots: [this._extensionUri],
+        };
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        webviewView.webview.onDidReceiveMessage(async (data) => {
+            switch (data.type) {
+                case "inputName": {
+                    if (!data.value) {
+                        return;
+                    }
+                    vscode.window.showInformationMessage(`Hi ${data.value}, welcome to the interview!`);
+                    break;
+                }
+                case "onError": {
+                    if (!data.value) {
+                        return;
+                    }
+                    vscode.window.showErrorMessage(data.value);
+                    break;
+                }
+            }
+        });
+    }
+    revive(panel) {
+        this._view = panel;
+    }
+    _getHtmlForWebview(webview) {
+        const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css"));
+        const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css"));
+        // Custom JS and CSS
+        const mainStyleUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.css"));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.js"));
+        // Use a nonce to only allow a specific script to be run.
+        const nonce = (0, getNonce_1.getNonce)();
+        return `<!DOCTYPE html>
+    <html lang="en">
+       <head>
+          <meta charset="UTF-8">
+          <!--
+             Use a content security policy to only allow loading images from https or from our extension directory,
+             and only allow scripts that have a specific nonce.
+                -->
+          <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link href="${styleResetUri}" rel="stylesheet">
+          <link href="${styleVSCodeUri}" rel="stylesheet">
+          <link href="${mainStyleUri}" rel="stylesheet">
+          <script nonce="${nonce}">
+          const tsvscode = acquireVsCodeApi();
+          </script>
+       </head>
+       <body>
+       <script src="${scriptUri}" nonce="${nonce}">
+       
+       </script>
+       </body>
+    </html>`;
+    }
+}
+exports.SidebarProvider = SidebarProvider;
+
+
+/***/ }),
+/* 2 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getNonce = void 0;
+function getNonce() {
+    let text = "";
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
+exports.getNonce = getNonce;
+
+
+/***/ }),
+/* 3 */
 /***/ ((module) => {
 
 module.exports = require("vscode");
 
 /***/ }),
-/* 2 */
+/* 4 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WelcomePanel = void 0;
-const getNonce_1 = __webpack_require__(3);
-const vscode = __webpack_require__(1);
+const getNonce_1 = __webpack_require__(2);
+const vscode = __webpack_require__(3);
 class WelcomePanel {
     static createOrShow(extensionUri) {
         const column = vscode.window.activeTextEditor
@@ -137,103 +234,6 @@ exports.WelcomePanel = WelcomePanel;
 WelcomePanel.viewType = "welcome";
 
 
-/***/ }),
-/* 3 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getNonce = void 0;
-function getNonce() {
-    let text = "";
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-}
-exports.getNonce = getNonce;
-
-
-/***/ }),
-/* 4 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SidebarProvider = void 0;
-const getNonce_1 = __webpack_require__(3);
-const vscode = __webpack_require__(1);
-class SidebarProvider {
-    constructor(_extensionUri) {
-        this._extensionUri = _extensionUri;
-    }
-    resolveWebviewView(webviewView) {
-        this._view = webviewView;
-        webviewView.webview.options = {
-            // Allow scripts in the webview
-            enableScripts: true,
-            localResourceRoots: [this._extensionUri],
-        };
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-        webviewView.webview.onDidReceiveMessage(async (data) => {
-            switch (data.type) {
-                case "inputName": {
-                    if (!data.value) {
-                        return;
-                    }
-                    vscode.window.showInformationMessage(`Hi ${data.value}, welcome to the interview!`);
-                    break;
-                }
-                case "onError": {
-                    if (!data.value) {
-                        return;
-                    }
-                    vscode.window.showErrorMessage(data.value);
-                    break;
-                }
-            }
-        });
-    }
-    revive(panel) {
-        this._view = panel;
-    }
-    _getHtmlForWebview(webview) {
-        const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css"));
-        const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css"));
-        // Custom JS and CSS
-        const mainStyleUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.css"));
-        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.js"));
-        // Use a nonce to only allow a specific script to be run.
-        const nonce = (0, getNonce_1.getNonce)();
-        return `<!DOCTYPE html>
-    <html lang="en">
-       <head>
-          <meta charset="UTF-8">
-          <!--
-             Use a content security policy to only allow loading images from https or from our extension directory,
-             and only allow scripts that have a specific nonce.
-                -->
-          <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link href="${styleResetUri}" rel="stylesheet">
-          <link href="${styleVSCodeUri}" rel="stylesheet">
-          <link href="${mainStyleUri}" rel="stylesheet">
-          <script nonce="${nonce}">
-          const tsvscode = acquireVsCodeApi();
-          </script>
-       </head>
-       <body>
-       <script src="${scriptUri}" nonce="${nonce}">
-       
-       </script>
-       </body>
-    </html>`;
-    }
-}
-exports.SidebarProvider = SidebarProvider;
-
-
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -269,9 +269,9 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deactivate = exports.activate = void 0;
-const SidebarProvider_1 = __webpack_require__(4);
-const WelcomePanel_1 = __webpack_require__(2);
-const vscode = __webpack_require__(1);
+const SidebarProvider_1 = __webpack_require__(1);
+const WelcomePanel_1 = __webpack_require__(4);
+const vscode = __webpack_require__(3);
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {

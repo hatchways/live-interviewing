@@ -1,23 +1,21 @@
 <script lang="ts">
     let name = "";
-    const handleSubmit = (e: any) => {
-      
- 
-    }
 
 </script>
 <div class="body">
-    <form on:submit|preventDefault={handleSubmit}>
+      Input your name to start the interview
         <input bind:value={name} placeholder="Your Name"/>
         <button on:click={() => {
             tsvscode.postMessage({ type: 'inputName', value: name });
         }}>Submit</button>
-    </form>
 </div>
 <style>
 
+input {
+    margin-top: 5px;
+}
 button {
-    margin-top: 5px
+    margin-top: 5px;
 }
 .body {
     margin-top: 10px;

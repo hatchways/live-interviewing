@@ -5,8 +5,8 @@
     "Sidebar.svelte"
   ],
   "sourcesContent": [
-    "<script lang=\"ts\">\"use strict\";\nlet name = \"\";\nconst handleSubmit = (e) => {\n};\n</script>\n<div class=\"body\">\n    <form on:submit|preventDefault={handleSubmit}>\n        <input bind:value={name} placeholder=\"Your Name\"/>\n        <button on:click={() => {\n            tsvscode.postMessage({ type: 'inputName', value: name });\n        }}>Submit</button>\n    </form>\n</div>\n<style>\n\nbutton {\n    margin-top: 5px\n}\n.body {\n    margin-top: 10px;\n}\n   \n</style>"
+    "<script lang=\"ts\">\"use strict\";\nlet name = \"\";\n</script>\n<div class=\"body\">\n      Input your name to start the interview\n        <input bind:value={name} placeholder=\"Your Name\"/>\n        <button on:click={() => {\n            tsvscode.postMessage({ type: 'inputName', value: name });\n        }}>Submit</button>\n</div>\n<style>\n\ninput {\n    margin-top: 5px;\n}\nbutton {\n    margin-top: 5px;\n}\n.body {\n    margin-top: 10px;\n}\n   \n</style>"
   ],
   "names": [],
-  "mappings": "AAeA,oBAAO,CACH,UAAU,CAAE,GAAG;AACnB,CACA,mBAAM,CACF,UAAU,CAAE,IAChB"
+  "mappings": "AAYA,mBAAM,CACF,UAAU,CAAE,GAChB,CACA,oBAAO,CACH,UAAU,CAAE,GAChB,CACA,mBAAM,CACF,UAAU,CAAE,IAChB"
 }
