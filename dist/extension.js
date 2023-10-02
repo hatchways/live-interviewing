@@ -151,6 +151,7 @@ function activate(context) {
         vscode.commands.executeCommand(`workbench.action.openWalkthrough`, `hatchways.hatchways-live-interviewing#walkthrough`, false);
     }));
     vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
+    vscode.commands.executeCommand("hatchways-sidebar.focus");
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated

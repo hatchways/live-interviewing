@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
-  
+  vscode.commands.executeCommand("hatchways-sidebar.focus")
 }
 
 // This method is called when your extension is deactivated
