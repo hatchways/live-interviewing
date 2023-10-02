@@ -1,5 +1,6 @@
 {
   "name": "hatchways-live-interviewing",
+  "publisher": "hatchways",
   "displayName": "hatchways-live-interviewing",
   "description": "",
   "version": "0.0.1",
@@ -9,9 +10,16 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": ["onStartupFinished"],
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "hatchways-live-interviewing.welcome",
+        "title": "Welcome",
+        "category": "Hatchways"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -34,7 +42,7 @@
     },
     "walkthroughs": [
       {
-        "id": "sample",
+        "id": "walkthrough",
         "title": "Get Started with Hatchways",
         "description": "Your first steps to setup Hatchways live coding interview",
         "steps": [
