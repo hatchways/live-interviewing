@@ -1,5 +1,4 @@
 import { SidebarProvider } from "./SidebarProvider";
-import { WelcomePanel } from "./WelcomePanel";
 import * as vscode from "vscode";
 
 // This method is called when your extension is activated
@@ -14,18 +13,8 @@ export function activate(context: vscode.ExtensionContext) {
       sidebarProvider
     )
   );
-
-
-  // Initialize the Welcome page 
-  let disposable = vscode.commands.registerCommand(
-    "hatchways-live-interviewing.welcome",
-    () => {
-      WelcomePanel.createOrShow(context.extensionUri);
-    }
-  );
-
-  context.subscriptions.push(disposable);
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+ 
