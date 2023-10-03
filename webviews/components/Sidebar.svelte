@@ -1,10 +1,9 @@
 <script lang="ts">
     let name = "";
-
 </script>
 <div class="body">
       Input your name to start the interview
-        <input bind:value={name} placeholder="Your Name"/>
+        <input bind:value={name} placeholder={"Your Name"}/>
         <button on:click={() => {
             tsvscode.postMessage({ type: 'inputName', value: name });
         }}>Submit</button>

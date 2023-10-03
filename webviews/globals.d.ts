@@ -6,4 +6,5 @@ declare global {
     getState: () => any;
     setState: (state: any) => void;
   };
+  const globalName: string;
 }

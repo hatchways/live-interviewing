@@ -406,7 +406,7 @@ var app = (function () {
     			attr_dev(input, "class", "svelte-94c6qv");
     			add_location(input, file, 5, 8, 129);
     			attr_dev(button, "class", "svelte-94c6qv");
-    			add_location(button, file, 6, 8, 188);
+    			add_location(button, file, 6, 8, 190);
     			attr_dev(div, "class", "body svelte-94c6qv");
     			add_location(div, file, 3, 0, 57);
     		},
