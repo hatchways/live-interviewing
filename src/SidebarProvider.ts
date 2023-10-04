@@ -1,6 +1,6 @@
 import { getNonce } from "./utils/getNonce";
 import * as vscode from "vscode";
-import { CURRENT_USER, USER_JOIN } from "./utils/globalStateKey";
+import { CURRENT_USER, USER_JOIN } from "./utils/constants";
 import { Socket } from "socket.io-client";
 
 
@@ -28,7 +28,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           if (!data.value) {
             return;
           }
-          this._globalState.update(CURRENT_USER, data.value);    
           this._socket.emit(USER_JOIN, data.value);      
           break;
         }

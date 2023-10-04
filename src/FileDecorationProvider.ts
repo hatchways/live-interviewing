@@ -1,32 +1,47 @@
 import * as vscode from "vscode";
+import { ALL_USERS, CURRENT_USER, USER_CLICK_ON_FILE } from "./utils/constants";
+// import { makeDeepCopy } from "./utils/makeDeepCopy";
+import { Socket } from "socket.io-client";
 
 export class FileDecorationProvider implements vscode.FileDecorationProvider {
-  genBadge: string;
   private _genTooltip = "Generated";
+
   onDidChangeFileDecorations: vscode.Event<vscode.Uri>;
-
+  globalState: vscode.Memento
   emitter = new vscode.EventEmitter<vscode.Uri>();
+  socket: any;
 
-  public constructor(badge: string) {
+  public constructor(globalState: vscode.Memento, socket: Socket) {
     this.onDidChangeFileDecorations = this.emitter.event;
-    this.genBadge = badge;
+    this.globalState = globalState;
+    this.socket = socket;
   }
 
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     let result: vscode.FileDecoration | undefined = undefined;
     let tooltip = this._genTooltip;
 
+    const allUsers = this.globalState.get(ALL_USERS)
+    const currentUserSocketId = this.socket?.id;
+    // const prevUri = currentUserSocketId in allUsers ? allUsers[currentUserSocketId]?.uri : null;
 
+    // Assign decorator to the current file the user are clicking on
     const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
     if (
         doc != undefined &&
-        !doc.isUntitled
+        !doc.isUntitled && 
+        currentUserSocketId
     ){
-        result = new vscode.FileDecoration(this.genBadge, tooltip);
+        result = new vscode.FileDecoration("????", tooltip);
+        this.socket.emit(USER_CLICK_ON_FILE, uri)
     }
 
-    // const toBeDeleted = '/Users/minhle/go/pkg/mod/google.golang.org/genproto@v0.0.0-20191115221424-83cc0476cb11/googleapis/ads/googleads/v2/enums/matching_function_operator.pb.go'
-    // if (uri.path.toString() === toBeDeleted){
+    // // Remove decorator for the previous file that they click on
+    // let removeUri = null;
+    // if (prevUri){
+    //   removeUri = vscode.workspace.textDocuments.find((d) => d.uri.toString() == prevUri.toString());
+    // }
+    // if (removeUri){
     //     result = undefined;
     // }
     return result;

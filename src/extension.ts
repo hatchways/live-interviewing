@@ -2,21 +2,19 @@ import { SidebarProvider } from "./SidebarProvider";
 import { io } from 'socket.io-client';
 import * as vscode from "vscode";
 import { FileDecorationProvider } from "./FileDecorationProvider";
-import { USER_JOIN } from "./utils/globalStateKey";
+import { ALL_USERS, CURRENT_USER, USER_CLICK_ON_FILE, USER_JOIN } from "./utils/constants";
 
 
 // This method is called when your extension is activated. 
 // Currently this is activated as soon as user open VSCode
 export function activate(context: vscode.ExtensionContext) {
-  const socket = io('http://localhost:4000');
+  const socket = io('https://23f1-99-209-53-204.ngrok-free.app');
 
-  socket.on('test', (value) => {
-    vscode.window.showInformationMessage(value);
-  });
-  
-  socket.on(USER_JOIN, (value, callback) => {
-     console.log("vallue is calld in here?????")
-			vscode.window.showInformationMessage(value);
+  socket.on("all_users", (value, callback) => {
+    const allOnlineUsers = value["allOnlineUsers"];
+    const newUserJoined = value["newUserJoined"];
+    vscode.window.showInformationMessage(`User ${newUserJoined} joined the interview!`)
+    context.globalState.update(ALL_USERS, allOnlineUsers)
 	});
 
 	  
@@ -40,17 +38,15 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
   vscode.commands.executeCommand("hatchways-sidebar.focus")
 
-  const currentUser = context.globalState.get("currentUser");
-
-  const fileDecorationProvider = new FileDecorationProvider("M");
+  const fileDecorationProvider = new FileDecorationProvider(context.globalState, socket);
   vscode.window.registerFileDecorationProvider(fileDecorationProvider)
 
   // When user click on a file, send it to Socket
-   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
+  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
     const doc = editor?.document;
-    // if (doc?.uri){
-    //   fileDecorationProvider.emitter.fire(doc?.uri);
-    // }
+    if (doc?.uri){
+      fileDecorationProvider.emitter.fire(doc?.uri);
+    }
   }));
   
 }

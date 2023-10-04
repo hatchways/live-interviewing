@@ -9,27 +9,18 @@ const io = socketIo(server);
 let users = {};
 
 io.on('connection', (socket) => {
-    console.log(`User ${socket.id} connected`);
+    users[socket.id] = { cursorPosition: null, name: '', filePosition: ''};
 
-    users[socket.id] = { cursorPosition: null };
-
-    socket.emit('test', `Hello from server ${socket.id}`);
-
-    socket.on('user_join', (data) => {
-        console.log("data is emitting!!!!!!!!!", data);
-        socket.emit('user_join', data);
+    socket.on('user_join', (userName) => {
+        users[socket.id]['name'] = userName
+        socket.emit('all_users', {'allOnlineUsers': users, 'newUserJoined': userName});
     });
 
-    // Listen for changes from any client
-    socket.on('textChange', (data) => {
-        // broadcast changes to all other clients
-        socket.emit('textChange', data);
-    });
-
-    socket.on('cursorMove', (data) => {
-        console.log(JSON.stringify(data));
-        socket.broadcast.emit('cursorMove', data);
-    });
+    socket.on('user_click_on_file', (fileUri) => {
+        users[socket.id]['filePosition'] = fileUri
+        console.log("event emitted!!!!", {'allOnlineUsers': users, 'newFileClicked': fileUri, 'userClickedOnFile': socket.id})
+        socket.emit('user_click_on_file', {'allOnlineUsers': users, 'newFileClicked': fileUri, 'userClickedOnFile': socket.id});
+    })
 
     socket.on('disconnect', () => {
         console.log(`User ${socket.id} disconnected`);

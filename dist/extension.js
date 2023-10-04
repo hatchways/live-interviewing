@@ -10,7 +10,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SidebarProvider = void 0;
 const getNonce_1 = __webpack_require__(2);
 const vscode = __webpack_require__(3);
-const globalStateKey_1 = __webpack_require__(4);
+const constants_1 = __webpack_require__(4);
 class SidebarProvider {
     constructor(_extensionUri, _globalState, _socket) {
         this._extensionUri = _extensionUri;
@@ -31,8 +31,7 @@ class SidebarProvider {
                     if (!data.value) {
                         return;
                     }
-                    this._globalState.update(globalStateKey_1.CURRENT_USER, data.value);
-                    this._socket.emit(globalStateKey_1.USER_JOIN, data.value);
+                    this._socket.emit(constants_1.USER_JOIN, data.value);
                     break;
                 }
                 case "onError": {
@@ -118,10 +117,13 @@ module.exports = require("vscode");
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.USER_JOIN = exports.CURRENT_USER = void 0;
+exports.USER_CLICK_ON_FILE = exports.USER_JOIN = exports.ALL_USERS = exports.CURRENT_USER = void 0;
+// Global states
 exports.CURRENT_USER = "current_user";
+exports.ALL_USERS = "all_users";
 // Socket events
 exports.USER_JOIN = "user_join";
+exports.USER_CLICK_ON_FILE = "user_click_on_file";
 
 
 /***/ }),
@@ -11077,23 +11079,35 @@ Backoff.prototype.setJitter = function (jitter) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FileDecorationProvider = void 0;
 const vscode = __webpack_require__(3);
+const constants_1 = __webpack_require__(4);
 class FileDecorationProvider {
-    constructor(badge) {
+    constructor(globalState, socket) {
         this._genTooltip = "Generated";
         this.emitter = new vscode.EventEmitter();
         this.onDidChangeFileDecorations = this.emitter.event;
-        this.genBadge = badge;
+        this.globalState = globalState;
+        this.socket = socket;
     }
     provideFileDecoration(uri) {
         let result = undefined;
         let tooltip = this._genTooltip;
+        const allUsers = this.globalState.get(constants_1.ALL_USERS);
+        const currentUserSocketId = this.socket?.id;
+        // const prevUri = currentUserSocketId in allUsers ? allUsers[currentUserSocketId]?.uri : null;
+        // Assign decorator to the current file the user are clicking on
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
         if (doc != undefined &&
-            !doc.isUntitled) {
-            result = new vscode.FileDecoration(this.genBadge, tooltip);
+            !doc.isUntitled &&
+            currentUserSocketId) {
+            result = new vscode.FileDecoration("????", tooltip);
+            this.socket.emit(constants_1.USER_CLICK_ON_FILE, uri);
         }
-        // const toBeDeleted = '/Users/minhle/go/pkg/mod/google.golang.org/genproto@v0.0.0-20191115221424-83cc0476cb11/googleapis/ads/googleads/v2/enums/matching_function_operator.pb.go'
-        // if (uri.path.toString() === toBeDeleted){
+        // // Remove decorator for the previous file that they click on
+        // let removeUri = null;
+        // if (prevUri){
+        //   removeUri = vscode.workspace.textDocuments.find((d) => d.uri.toString() == prevUri.toString());
+        // }
+        // if (removeUri){
         //     result = undefined;
         // }
         return result;
@@ -11171,17 +11185,16 @@ const SidebarProvider_1 = __webpack_require__(1);
 const socket_io_client_1 = __webpack_require__(5);
 const vscode = __webpack_require__(3);
 const FileDecorationProvider_1 = __webpack_require__(69);
-const globalStateKey_1 = __webpack_require__(4);
+const constants_1 = __webpack_require__(4);
 // This method is called when your extension is activated. 
 // Currently this is activated as soon as user open VSCode
 function activate(context) {
-    const socket = (0, socket_io_client_1.io)('http://localhost:4000');
-    socket.on('test', (value) => {
-        vscode.window.showInformationMessage(value);
-    });
-    socket.on(globalStateKey_1.USER_JOIN, (value, callback) => {
-        console.log("vallue is calld in here?????");
-        vscode.window.showInformationMessage(value);
+    const socket = (0, socket_io_client_1.io)('https://23f1-99-209-53-204.ngrok-free.app');
+    socket.on("all_users", (value, callback) => {
+        const allOnlineUsers = value["allOnlineUsers"];
+        const newUserJoined = value["newUserJoined"];
+        vscode.window.showInformationMessage(`User ${newUserJoined} joined the interview!`);
+        context.globalState.update(constants_1.ALL_USERS, allOnlineUsers);
     });
     // Initialize the Sidebar
     const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, context.globalState, socket);
@@ -11193,15 +11206,14 @@ function activate(context) {
     // Automatically open Live Interview + Sidebar 
     vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
     vscode.commands.executeCommand("hatchways-sidebar.focus");
-    const currentUser = context.globalState.get("currentUser");
-    const fileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider("M");
+    const fileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(context.globalState, socket);
     vscode.window.registerFileDecorationProvider(fileDecorationProvider);
     // When user click on a file, send it to Socket
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         const doc = editor?.document;
-        // if (doc?.uri){
-        //   fileDecorationProvider.emitter.fire(doc?.uri);
-        // }
+        if (doc?.uri) {
+            fileDecorationProvider.emitter.fire(doc?.uri);
+        }
     }));
 }
 exports.activate = activate;
