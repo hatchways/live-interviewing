@@ -117,7 +117,7 @@ module.exports = require("vscode");
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CURSOR_MOVE = exports.USER_CLICK_ON_FILE = exports.USER_JOIN = exports.ALL_USERS = exports.CURRENT_USER = void 0;
+exports.SOCKET_URL = exports.CURSOR_MOVE = exports.USER_CLICK_ON_FILE = exports.USER_JOIN = exports.ALL_USERS = exports.CURRENT_USER = void 0;
 // Global states
 exports.CURRENT_USER = "current_user";
 exports.ALL_USERS = "all_users";
@@ -125,6 +125,7 @@ exports.ALL_USERS = "all_users";
 exports.USER_JOIN = "user_join";
 exports.USER_CLICK_ON_FILE = "user_click_on_file";
 exports.CURSOR_MOVE = "cursor_move";
+exports.SOCKET_URL = "https://8c20-173-33-99-170.ngrok-free.app";
 
 
 /***/ }),
@@ -11082,7 +11083,6 @@ exports.FileDecorationProvider = void 0;
 const vscode = __webpack_require__(3);
 class FileDecorationProvider {
     constructor(globalState, socket) {
-        this._genTooltip = "Generated";
         this.emitter = new vscode.EventEmitter();
         this.onDidChangeFileDecorations = this.emitter.event;
         this.globalState = globalState;
@@ -11095,14 +11095,13 @@ class FileDecorationProvider {
     }
     provideFileDecoration(uri) {
         let result = undefined;
-        let tooltip = this._genTooltip;
         const allOnlineUsers = this.socketFileEventValue["allOnlineUsers"];
         const userClickedOnFile = this.socketFileEventValue["userClickedOnFile"];
         // Assign decorator to the current file the user are clicking on
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
         if (doc != undefined && !doc.isUntitled) {
             const decor = allOnlineUsers?.[userClickedOnFile]?.name?.[0] || "C";
-            result = new vscode.FileDecoration(decor, tooltip);
+            result = new vscode.FileDecoration(decor, allOnlineUsers?.[userClickedOnFile]?.name);
         }
         return result;
     }
@@ -11186,17 +11185,32 @@ const vscode = __webpack_require__(3);
 // This method is called when your extension is activated.
 // Currently this is activated as soon as user open VSCode
 function activate(context) {
+    // Autosave
     const config = vscode.workspace.getConfiguration("files");
     config.update("autoSave", "afterDelay", true);
     config.update("autoSaveDelay", 100, true);
-    const socket = (0, socket_io_client_1.io)("https://8c20-173-33-99-170.ngrok-free.app");
+    // Initialize variables
+    const socket = (0, socket_io_client_1.io)(constants_1.SOCKET_URL);
     let currFileDecorationProvider = null;
+    let cursorDecoration = null;
+    // Sidebar
+    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, context.globalState, socket);
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider("hatchways-sidebar", sidebarProvider));
+    // Walkthrough Screen
+    context.subscriptions.push(vscode.commands.registerCommand("hatchways-live-interviewing.welcome", () => {
+        vscode.commands.executeCommand(`workbench.action.openWalkthrough`, `hatchways.hatchways-live-interviewing#walkthrough`, false);
+    }));
+    // Automatically open Live Interview + Sidebar
+    vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
+    vscode.commands.executeCommand("hatchways-sidebar.focus");
+    // When user join an interview
     socket.on(constants_1.ALL_USERS, (value, callback) => {
         const allOnlineUsers = value["allOnlineUsers"];
         const newUserJoined = value["newUserJoined"];
         vscode.window.showInformationMessage(`User ${newUserJoined} joined the interview!`);
         context.globalState.update(constants_1.ALL_USERS, allOnlineUsers);
     });
+    // When user open a file
     socket.on(constants_1.USER_CLICK_ON_FILE, (value, callback) => {
         const allOnlineUsers = value["allOnlineUsers"];
         context.globalState.update(constants_1.ALL_USERS, allOnlineUsers);
@@ -11206,7 +11220,7 @@ function activate(context) {
         currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(context.globalState, socket);
         currFileDecorationProvider.setValue(value);
     });
-    // Listen to changes from other users and apply them
+    // When user click on a line
     socket.on(constants_1.CURSOR_MOVE, (data) => {
         // if (uniqueId === data.uniqueId) {
         // 	return
@@ -11214,7 +11228,8 @@ function activate(context) {
         let startPosition = new vscode.Position(data.selections[0].start.line, data.selections[0].start.character);
         let endPosition = new vscode.Position(data.selections[0].end.line, data.selections[0].end.character);
         const activeEditor = vscode.window.activeTextEditor;
-        const cursorDecoration = vscode.window.createTextEditorDecorationType({
+        cursorDecoration = vscode.window.createTextEditorDecorationType({
+            // Red color for demonstration. Adjust as needed.
             backgroundColor: "rgba(255,0,0,0.3)",
             border: "2px solid red",
         });
@@ -11229,16 +11244,6 @@ function activate(context) {
             },
         ]);
     });
-    // Initialize the Sidebar
-    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, context.globalState, socket);
-    context.subscriptions.push(vscode.window.registerWebviewViewProvider("hatchways-sidebar", sidebarProvider));
-    // Initialize Walkthrough Screen
-    context.subscriptions.push(vscode.commands.registerCommand("hatchways-live-interviewing.welcome", () => {
-        vscode.commands.executeCommand(`workbench.action.openWalkthrough`, `hatchways.hatchways-live-interviewing#walkthrough`, false);
-    }));
-    // Automatically open Live Interview + Sidebar
-    vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
-    vscode.commands.executeCommand("hatchways-sidebar.focus");
     // When user click on a file, send it to Socket
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         const doc = editor?.document;
@@ -11248,6 +11253,11 @@ function activate(context) {
     }));
     if (vscode.window.activeTextEditor) {
         context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection((event) => {
+            // Remove previous cursor
+            if (cursorDecoration) {
+                cursorDecoration.dispose();
+            }
+            // Send new cursor position
             if (event.textEditor === vscode.window.activeTextEditor) {
                 socket.emit(constants_1.CURSOR_MOVE, {
                     selections: event.selections,

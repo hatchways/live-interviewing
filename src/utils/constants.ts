@@ -6,3 +6,6 @@ export const ALL_USERS = "all_users";
 export const USER_JOIN = "user_join";
 export const USER_CLICK_ON_FILE = "user_click_on_file";
 export const CURSOR_MOVE = "cursor_move";
+
+
+export const SOCKET_URL = "https://8c20-173-33-99-170.ngrok-free.app"

@@ -4,14 +4,14 @@ import * as vscode from "vscode";
 export class FileDecorationProvider
   implements vscode.Disposable, vscode.FileDecorationProvider
 {
-  private _genTooltip = "Generated";
-
   onDidChangeFileDecorations: vscode.Event<vscode.Uri>;
   globalState: vscode.Memento;
-  emitter = new vscode.EventEmitter<vscode.Uri>();
+  disposable: vscode.Disposable;
+ 
   socket: Socket;
   socketFileEventValue: any;
-  disposable: vscode.Disposable;
+
+  emitter = new vscode.EventEmitter<vscode.Uri>();
 
   public constructor(globalState: vscode.Memento, socket: Socket) {
     this.onDidChangeFileDecorations = this.emitter.event;
@@ -27,7 +27,7 @@ export class FileDecorationProvider
 
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     let result: vscode.FileDecoration | undefined = undefined;
-    let tooltip = this._genTooltip;
+
 
     const allOnlineUsers = this.socketFileEventValue["allOnlineUsers"];
     const userClickedOnFile = this.socketFileEventValue["userClickedOnFile"];
@@ -38,9 +38,8 @@ export class FileDecorationProvider
     );
     if (doc != undefined && !doc.isUntitled) {
       const decor = allOnlineUsers?.[userClickedOnFile]?.name?.[0] || "C";
-      result = new vscode.FileDecoration(decor, tooltip);
+      result = new vscode.FileDecoration(decor, allOnlineUsers?.[userClickedOnFile]?.name);
     }
-
     return result;
   }
 

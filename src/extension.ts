@@ -1,20 +1,56 @@
 import { FileDecorationProvider } from "./FileDecorationProvider";
 import { SidebarProvider } from "./SidebarProvider";
-import { ALL_USERS, CURSOR_MOVE, USER_CLICK_ON_FILE } from "./utils/constants";
+import { ALL_USERS, CURSOR_MOVE, SOCKET_URL, USER_CLICK_ON_FILE } from "./utils/constants";
 import { io } from "socket.io-client";
 import * as vscode from "vscode";
 
 // This method is called when your extension is activated.
 // Currently this is activated as soon as user open VSCode
 export function activate(context: vscode.ExtensionContext) {
+
+  // Autosave
   const config = vscode.workspace.getConfiguration("files");
   config.update("autoSave", "afterDelay", true);
   config.update("autoSaveDelay", 100, true);
 
-  const socket = io("https://8c20-173-33-99-170.ngrok-free.app");
+  // Initialize variables
+  const socket = io(SOCKET_URL);
+  let currFileDecorationProvider: vscode.FileDecorationProvider | null = null;
+  let cursorDecoration: vscode.TextEditorDecorationType | null = null;
 
-  let currFileDecorationProvider: FileDecorationProvider = null;
+  // Sidebar
+  const sidebarProvider = new SidebarProvider(
+    context.extensionUri,
+    context.globalState,
+    socket
+  );
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      "hatchways-sidebar",
+      sidebarProvider
+    )
+  );
 
+  // Walkthrough Screen
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "hatchways-live-interviewing.welcome",
+      () => {
+        vscode.commands.executeCommand(
+          `workbench.action.openWalkthrough`,
+          `hatchways.hatchways-live-interviewing#walkthrough`,
+          false
+        );
+      }
+    )
+  );
+  
+  // Automatically open Live Interview + Sidebar
+  vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
+  vscode.commands.executeCommand("hatchways-sidebar.focus");
+  
+
+  // When user join an interview
   socket.on(ALL_USERS, (value, callback) => {
     const allOnlineUsers = value["allOnlineUsers"];
     const newUserJoined = value["newUserJoined"];
@@ -24,6 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.globalState.update(ALL_USERS, allOnlineUsers);
   });
 
+  // When user open a file
   socket.on(USER_CLICK_ON_FILE, (value, callback) => {
     const allOnlineUsers = value["allOnlineUsers"];
     context.globalState.update(ALL_USERS, allOnlineUsers);
@@ -38,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
     currFileDecorationProvider.setValue(value);
   });
 
-  // Listen to changes from other users and apply them
+  // When user click on a line
   socket.on(CURSOR_MOVE, (data) => {
     // if (uniqueId === data.uniqueId) {
     // 	return
@@ -53,8 +90,9 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     const activeEditor = vscode.window.activeTextEditor;
-    const cursorDecoration = vscode.window.createTextEditorDecorationType({
-      backgroundColor: "rgba(255,0,0,0.3)", // Red color for demonstration. Adjust as needed.
+    cursorDecoration = vscode.window.createTextEditorDecorationType({
+      // Red color for demonstration. Adjust as needed.
+      backgroundColor: "rgba(255,0,0,0.3)", 
       border: "2px solid red",
     });
 
@@ -71,36 +109,6 @@ export function activate(context: vscode.ExtensionContext) {
     ]);
   });
 
-  // Initialize the Sidebar
-  const sidebarProvider = new SidebarProvider(
-    context.extensionUri,
-    context.globalState,
-    socket
-  );
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      "hatchways-sidebar",
-      sidebarProvider
-    )
-  );
-
-  // Initialize Walkthrough Screen
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "hatchways-live-interviewing.welcome",
-      () => {
-        vscode.commands.executeCommand(
-          `workbench.action.openWalkthrough`,
-          `hatchways.hatchways-live-interviewing#walkthrough`,
-          false
-        );
-      }
-    )
-  );
-
-  // Automatically open Live Interview + Sidebar
-  vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
-  vscode.commands.executeCommand("hatchways-sidebar.focus");
 
   // When user click on a file, send it to Socket
   context.subscriptions.push(
@@ -115,6 +123,11 @@ export function activate(context: vscode.ExtensionContext) {
   if (vscode.window.activeTextEditor) {
     context.subscriptions.push(
       vscode.window.onDidChangeTextEditorSelection((event) => {
+        // Remove previous cursor
+        if (cursorDecoration){
+          cursorDecoration.dispose();
+        }
+        // Send new cursor position
         if (event.textEditor === vscode.window.activeTextEditor) {
           socket.emit(CURSOR_MOVE, {
             selections: event.selections,
