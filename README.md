@@ -1,7 +1,3 @@
-# hatchways-live-interviewing README
-
-This is the README for your extension "hatchways-live-interviewing".
-
 ## To run
 
 ```

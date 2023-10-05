@@ -1,6 +1,6 @@
 import { FileDecorationProvider } from "./FileDecorationProvider";
 import { SidebarProvider } from "./SidebarProvider";
-import { ALL_USERS, SOCKET_URL, USER_CLICK_ON_FILE, USER_CURSOR_MOVE } from "./utils/constants";
+import { ALL_USERS, SOCKET_URL, USER_CLICK_ON_FILE, USER_CURSOR_MOVE, USER_JOIN, USER_LEAVE } from "./utils/constants";
 import { io } from "socket.io-client";
 import * as vscode from "vscode";
 
@@ -50,21 +50,25 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.executeCommand("hatchways-sidebar.focus");
   
 
-  // When user join an interview
+  // Update all users state
   socket.on(ALL_USERS, (value, callback) => {
     updateUserState(value, context);
-
-    const newUserJoined = value["newUserJoined"];
-    vscode.window.showInformationMessage(
-      `User ${newUserJoined} joined the interview!`
-    );
   });
+
+  // When user joined 
+  socket.on(USER_JOIN, (message) => {
+    vscode.window.showInformationMessage(message)
+  })
+
+  // Whe user left
+  socket.on(USER_LEAVE, (message) => {
+    vscode.window.showInformationMessage(message)
+  })
 
   // When user open a file
   socket.on(USER_CLICK_ON_FILE, (value, callback) => {
-    const allOnlineUsers = value["allOnlineUsers"];
     updateUserState(value, context);
-
+    console.log("value here!!!!!", value)
     if (currFileDecorationProvider) {
       currFileDecorationProvider.dispose();
     }
@@ -80,9 +84,9 @@ export function activate(context: vscode.ExtensionContext) {
     updateUserState(value, context);
 
     const userPerformingThisAction = value["userPerformingThisAction"];
-    // if (userPerformingThisAction === socket.id) {
-    // 	return
-    // }
+    if (userPerformingThisAction === socket.id) {
+    	return
+    }
 
     const data = value["newCursorPosition"]
     let startPosition: vscode.Position = new vscode.Position(
@@ -133,8 +137,13 @@ export function activate(context: vscode.ExtensionContext) {
         if (cursorDecoration){
           cursorDecoration.dispose();
         }
+        // if (currFileDecorationProvider) {
+        //   console.log("this is call????", currFileDecorationProvider)
+        //   currFileDecorationProvider.dispose();
+        // }
         // Send new cursor position
         if (event.textEditor === vscode.window.activeTextEditor) {
+          // socket.emit(USER_CLICK_ON_FILE, event.textEditor.document.uri);
           socket.emit(USER_CURSOR_MOVE, {
             selections: event.selections,
             socketId: socket.id,

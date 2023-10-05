@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 export class FileDecorationProvider
   implements vscode.Disposable, vscode.FileDecorationProvider
 {
+  badge: string;
   onDidChangeFileDecorations: vscode.Event<vscode.Uri>;
   globalState: vscode.Memento;
   disposable: vscode.Disposable;
@@ -18,27 +19,45 @@ export class FileDecorationProvider
     this.globalState = globalState;
     this.socket = socket;
     this.disposable = vscode.window.registerFileDecorationProvider(this);
+    this.badge = socket.id;
   }
 
   public setValue(value: any) {
     this.socketFileEventValue = value;
-    this.emitter.fire(value["newFileClicked"]);
+    const files = this.socketFileEventValue?.files;
+    for (const file in files){
+      const uri = file["uri"];
+      console.log("uri", uri);
+      this.emitter.fire(uri);
+    }
+  }
+
+  public removeBadge(value: any){
   }
 
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     let result: vscode.FileDecoration | undefined = undefined;
-
-
-    const allOnlineUsers = this.socketFileEventValue["allOnlineUsers"];
-    const userClickedOnFile = this.socketFileEventValue["userClickedOnFile"];
+    // const allOnlineUsers = this.socketFileEventValue["allOnlineUsers"];
+    // const userClickedOnFile = this.socketFileEventValue["userPerformingThisAction"];
 
     // Assign decorator to the current file the user are clicking on
     const doc = vscode.workspace.textDocuments.find(
       (d) => d.uri.toString() == uri.toString()
     );
     if (doc != undefined && !doc.isUntitled) {
-      const decor = allOnlineUsers?.[userClickedOnFile]?.name?.[0] || "C";
-      result = new vscode.FileDecoration(decor, allOnlineUsers?.[userClickedOnFile]?.name);
+      // const user = allOnlineUsers?.[userClickedOnFile];
+      // const badge = user?.name?.[0];
+      
+      // result = new vscode.FileDecoration(this.badge?.[0], `${this.badge} is on this file`);
+
+      let fakeBadge = "";
+      const files = this.socketFileEventValue?.files;
+      if (files[uri.fsPath]["users"]?.length > 0){
+        fakeBadge = "A";
+      } else {
+        fakeBadge = "";
+      }
+      result = new vscode.FileDecoration(fakeBadge, `${fakeBadge} is on this file`);
     }
     return result;
   }
