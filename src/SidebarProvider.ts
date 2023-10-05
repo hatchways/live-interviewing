@@ -1,14 +1,17 @@
-import { getNonce } from "./utils/getNonce";
-import * as vscode from "vscode";
 import { CURRENT_USER, USER_JOIN } from "./utils/constants";
+import { getNonce } from "./utils/getNonce";
 import { Socket } from "socket.io-client";
-
+import * as vscode from "vscode";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
   _doc?: vscode.TextDocument;
 
-  constructor(private readonly _extensionUri: vscode.Uri, private _globalState: vscode.Memento, private _socket: Socket) {}
+  constructor(
+    private readonly _extensionUri: vscode.Uri,
+    private _globalState: vscode.Memento,
+    private _socket: Socket
+  ) {}
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
@@ -28,7 +31,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           if (!data.value) {
             return;
           }
-          this._socket.emit(USER_JOIN, data.value);      
+          this._socket.emit(USER_JOIN, data.value);
           break;
         }
         case "onError": {
@@ -55,15 +58,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     );
     // Custom JS and CSS
     const mainStyleUri = webview.asWebviewUri(
-        vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.css")
-      );
-      const scriptUri = webview.asWebviewUri(
-        vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.js")
-      );
+      vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.css")
+    );
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.js")
+    );
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
     // const globalName = this._globalState.get(CURRENT_USER);
-
 
     return `<!DOCTYPE html>
     <html lang="en">

@@ -8,9 +8,9 @@
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SidebarProvider = void 0;
+const constants_1 = __webpack_require__(4);
 const getNonce_1 = __webpack_require__(2);
 const vscode = __webpack_require__(3);
-const constants_1 = __webpack_require__(4);
 class SidebarProvider {
     constructor(_extensionUri, _globalState, _socket) {
         this._extensionUri = _extensionUri;
@@ -11091,7 +11091,7 @@ class FileDecorationProvider {
     }
     setValue(value) {
         this.socketFileEventValue = value;
-        this.emitter.fire(value['newFileClicked']);
+        this.emitter.fire(value["newFileClicked"]);
     }
     provideFileDecoration(uri) {
         let result = undefined;
@@ -11100,8 +11100,7 @@ class FileDecorationProvider {
         const userClickedOnFile = this.socketFileEventValue["userClickedOnFile"];
         // Assign decorator to the current file the user are clicking on
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
-        if (doc != undefined &&
-            !doc.isUntitled) {
+        if (doc != undefined && !doc.isUntitled) {
             const decor = allOnlineUsers?.[userClickedOnFile]?.name?.[0] || "C";
             result = new vscode.FileDecoration(decor, tooltip);
         }
@@ -11179,17 +11178,17 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deactivate = exports.activate = void 0;
+const FileDecorationProvider_1 = __webpack_require__(69);
 const SidebarProvider_1 = __webpack_require__(1);
+const constants_1 = __webpack_require__(4);
 const socket_io_client_1 = __webpack_require__(5);
 const vscode = __webpack_require__(3);
-const FileDecorationProvider_1 = __webpack_require__(69);
-const constants_1 = __webpack_require__(4);
-// This method is called when your extension is activated. 
+// This method is called when your extension is activated.
 // Currently this is activated as soon as user open VSCode
 function activate(context) {
-    const config = vscode.workspace.getConfiguration('files');
-    config.update('autoSave', 'afterDelay', true);
-    config.update('autoSaveDelay', 100, true);
+    const config = vscode.workspace.getConfiguration("files");
+    config.update("autoSave", "afterDelay", true);
+    config.update("autoSaveDelay", 100, true);
     const socket = (0, socket_io_client_1.io)("https://8c20-173-33-99-170.ngrok-free.app");
     let currFileDecorationProvider = null;
     socket.on(constants_1.ALL_USERS, (value, callback) => {
@@ -11199,7 +11198,7 @@ function activate(context) {
         context.globalState.update(constants_1.ALL_USERS, allOnlineUsers);
     });
     socket.on(constants_1.USER_CLICK_ON_FILE, (value, callback) => {
-        const allOnlineUsers = value['allOnlineUsers'];
+        const allOnlineUsers = value["allOnlineUsers"];
         context.globalState.update(constants_1.ALL_USERS, allOnlineUsers);
         if (currFileDecorationProvider) {
             currFileDecorationProvider.dispose();
@@ -11210,21 +11209,25 @@ function activate(context) {
     // Listen to changes from other users and apply them
     socket.on(constants_1.CURSOR_MOVE, (data) => {
         // if (uniqueId === data.uniqueId) {
-        // 	return				
+        // 	return
         // }
         let startPosition = new vscode.Position(data.selections[0].start.line, data.selections[0].start.character);
         let endPosition = new vscode.Position(data.selections[0].end.line, data.selections[0].end.character);
         const activeEditor = vscode.window.activeTextEditor;
         const cursorDecoration = vscode.window.createTextEditorDecorationType({
-            backgroundColor: 'rgba(255,0,0,0.3)',
-            border: '2px solid red'
+            backgroundColor: "rgba(255,0,0,0.3)",
+            border: "2px solid red",
         });
         if (data.filePath !== activeEditor?.document.uri.path) {
-            vscode.window.showTextDocument(vscode.Uri.file(data.filePath), { viewColumn: vscode.ViewColumn.One });
+            vscode.window.showTextDocument(vscode.Uri.file(data.filePath), {
+                viewColumn: vscode.ViewColumn.One,
+            });
         }
-        activeEditor?.setDecorations(cursorDecoration, [{
-                range: new vscode.Range(startPosition, endPosition)
-            }]);
+        activeEditor?.setDecorations(cursorDecoration, [
+            {
+                range: new vscode.Range(startPosition, endPosition),
+            },
+        ]);
     });
     // Initialize the Sidebar
     const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, context.globalState, socket);
@@ -11233,7 +11236,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand("hatchways-live-interviewing.welcome", () => {
         vscode.commands.executeCommand(`workbench.action.openWalkthrough`, `hatchways.hatchways-live-interviewing#walkthrough`, false);
     }));
-    // Automatically open Live Interview + Sidebar 
+    // Automatically open Live Interview + Sidebar
     vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
     vscode.commands.executeCommand("hatchways-sidebar.focus");
     // When user click on a file, send it to Socket
@@ -11244,12 +11247,12 @@ function activate(context) {
         }
     }));
     if (vscode.window.activeTextEditor) {
-        context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
+        context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection((event) => {
             if (event.textEditor === vscode.window.activeTextEditor) {
                 socket.emit(constants_1.CURSOR_MOVE, {
                     selections: event.selections,
                     socketId: socket.id,
-                    filePath: event.textEditor.document.uri.path
+                    filePath: event.textEditor.document.uri.path,
                 });
             }
         }));

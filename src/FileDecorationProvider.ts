@@ -1,11 +1,13 @@
-import * as vscode from "vscode";
 import { Socket } from "socket.io-client";
+import * as vscode from "vscode";
 
-export class FileDecorationProvider implements vscode.Disposable, vscode.FileDecorationProvider {
+export class FileDecorationProvider
+  implements vscode.Disposable, vscode.FileDecorationProvider
+{
   private _genTooltip = "Generated";
 
   onDidChangeFileDecorations: vscode.Event<vscode.Uri>;
-  globalState: vscode.Memento
+  globalState: vscode.Memento;
   emitter = new vscode.EventEmitter<vscode.Uri>();
   socket: Socket;
   socketFileEventValue: any;
@@ -15,12 +17,12 @@ export class FileDecorationProvider implements vscode.Disposable, vscode.FileDec
     this.onDidChangeFileDecorations = this.emitter.event;
     this.globalState = globalState;
     this.socket = socket;
-    this.disposable = vscode.window.registerFileDecorationProvider(this);   
+    this.disposable = vscode.window.registerFileDecorationProvider(this);
   }
 
-  public setValue(value: any){
+  public setValue(value: any) {
     this.socketFileEventValue = value;
-    this.emitter.fire(value['newFileClicked']);
+    this.emitter.fire(value["newFileClicked"]);
   }
 
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
@@ -31,13 +33,12 @@ export class FileDecorationProvider implements vscode.Disposable, vscode.FileDec
     const userClickedOnFile = this.socketFileEventValue["userClickedOnFile"];
 
     // Assign decorator to the current file the user are clicking on
-    const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
-    if (
-        doc != undefined &&
-        !doc.isUntitled
-    ){
-       const decor = allOnlineUsers?.[userClickedOnFile]?.name?.[0] || "C";
-       result = new vscode.FileDecoration(decor, tooltip);
+    const doc = vscode.workspace.textDocuments.find(
+      (d) => d.uri.toString() == uri.toString()
+    );
+    if (doc != undefined && !doc.isUntitled) {
+      const decor = allOnlineUsers?.[userClickedOnFile]?.name?.[0] || "C";
+      result = new vscode.FileDecoration(decor, tooltip);
     }
 
     return result;
@@ -45,8 +46,5 @@ export class FileDecorationProvider implements vscode.Disposable, vscode.FileDec
 
   dispose() {
     this.disposable.dispose();
-}
-
-
-
+  }
 }
