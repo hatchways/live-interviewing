@@ -44,7 +44,7 @@ io.on("connection", (socket) => {
     if (index > -1){
       usersInPreviousFile.splice(index, 1);
     }
-    files[previousFileClicked.fsPath] = usersInPreviousFile;
+    // files[previousFileClicked.fsPath] = usersInPreviousFile;
     
     io.emit("user_click_on_file", {
       allOnlineUsers: users,

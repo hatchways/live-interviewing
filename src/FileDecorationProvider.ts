@@ -19,45 +19,34 @@ export class FileDecorationProvider
     this.globalState = globalState;
     this.socket = socket;
     this.disposable = vscode.window.registerFileDecorationProvider(this);
-    this.badge = socket.id;
   }
 
   public setValue(value: any) {
     this.socketFileEventValue = value;
     const files = this.socketFileEventValue?.files;
     for (const file in files){
+      // @ts-ignore
       const uri = file["uri"];
       console.log("uri", uri);
       this.emitter.fire(uri);
     }
-  }
-
-  public removeBadge(value: any){
+    this.badge = value["allOnlineUsers"][this.socket.id]?.name;
   }
 
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     let result: vscode.FileDecoration | undefined = undefined;
-    // const allOnlineUsers = this.socketFileEventValue["allOnlineUsers"];
-    // const userClickedOnFile = this.socketFileEventValue["userPerformingThisAction"];
 
     // Assign decorator to the current file the user are clicking on
     const doc = vscode.workspace.textDocuments.find(
       (d) => d.uri.toString() == uri.toString()
     );
     if (doc != undefined && !doc.isUntitled) {
-      // const user = allOnlineUsers?.[userClickedOnFile];
-      // const badge = user?.name?.[0];
-      
-      // result = new vscode.FileDecoration(this.badge?.[0], `${this.badge} is on this file`);
-
-      let fakeBadge = "";
+      let badge = "";
       const files = this.socketFileEventValue?.files;
       if (files[uri.fsPath]["users"]?.length > 0){
-        fakeBadge = "A";
-      } else {
-        fakeBadge = "";
+        badge = this.badge?.[0];
       }
-      result = new vscode.FileDecoration(fakeBadge, `${fakeBadge} is on this file`);
+      result = new vscode.FileDecoration(badge, `${this.badge} is on this file`);
     }
     return result;
   }

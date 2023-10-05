@@ -68,7 +68,6 @@ export function activate(context: vscode.ExtensionContext) {
   // When user open a file
   socket.on(USER_CLICK_ON_FILE, (value, callback) => {
     updateUserState(value, context);
-    console.log("value here!!!!!", value)
     if (currFileDecorationProvider) {
       currFileDecorationProvider.dispose();
     }
