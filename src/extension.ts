@@ -1,6 +1,6 @@
 import { FileDecorationProvider } from "./FileDecorationProvider";
 import { SidebarProvider } from "./SidebarProvider";
-import { ALL_USERS, CURSOR_MOVE, SOCKET_URL, USER_CLICK_ON_FILE } from "./utils/constants";
+import { ALL_USERS, SOCKET_URL, USER_CLICK_ON_FILE, USER_CURSOR_MOVE } from "./utils/constants";
 import { io } from "socket.io-client";
 import * as vscode from "vscode";
 
@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Initialize variables
   const socket = io(SOCKET_URL);
-  let currFileDecorationProvider: vscode.FileDecorationProvider | null = null;
+  let currFileDecorationProvider: any | null = null;
   let cursorDecoration: vscode.TextEditorDecorationType | null = null;
 
   // Sidebar
@@ -52,18 +52,18 @@ export function activate(context: vscode.ExtensionContext) {
 
   // When user join an interview
   socket.on(ALL_USERS, (value, callback) => {
-    const allOnlineUsers = value["allOnlineUsers"];
+    updateUserState(value, context);
+
     const newUserJoined = value["newUserJoined"];
     vscode.window.showInformationMessage(
       `User ${newUserJoined} joined the interview!`
     );
-    context.globalState.update(ALL_USERS, allOnlineUsers);
   });
 
   // When user open a file
   socket.on(USER_CLICK_ON_FILE, (value, callback) => {
     const allOnlineUsers = value["allOnlineUsers"];
-    context.globalState.update(ALL_USERS, allOnlineUsers);
+    updateUserState(value, context);
 
     if (currFileDecorationProvider) {
       currFileDecorationProvider.dispose();
@@ -76,10 +76,15 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   // When user click on a line
-  socket.on(CURSOR_MOVE, (data) => {
-    // if (uniqueId === data.uniqueId) {
+  socket.on(USER_CURSOR_MOVE, (value) => {
+    updateUserState(value, context);
+
+    const userPerformingThisAction = value["userPerformingThisAction"];
+    // if (userPerformingThisAction === socket.id) {
     // 	return
     // }
+
+    const data = value["newCursorPosition"]
     let startPosition: vscode.Position = new vscode.Position(
       data.selections[0].start.line,
       data.selections[0].start.character
@@ -104,6 +109,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     activeEditor?.setDecorations(cursorDecoration, [
       {
+        hoverMessage: "Message",
         range: new vscode.Range(startPosition, endPosition),
       },
     ]);
@@ -129,7 +135,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
         // Send new cursor position
         if (event.textEditor === vscode.window.activeTextEditor) {
-          socket.emit(CURSOR_MOVE, {
+          socket.emit(USER_CURSOR_MOVE, {
             selections: event.selections,
             socketId: socket.id,
             filePath: event.textEditor.document.uri.path,
@@ -139,5 +145,11 @@ export function activate(context: vscode.ExtensionContext) {
     );
   }
 }
+
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+function updateUserState(value: any, context: any){
+  const allOnlineUsers = value["allOnlineUsers"];
+  context.globalState.update(ALL_USERS, allOnlineUsers);
+}

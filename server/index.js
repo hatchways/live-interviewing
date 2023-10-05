@@ -25,14 +25,18 @@ io.on("connection", (socket) => {
     socket.emit("user_click_on_file", {
       allOnlineUsers: users,
       newFileClicked: fileUri,
-      userClickedOnFile: socket.id,
+      userPerformingThisAction: socket.id,
       previousFileClicked: previousFileClicked,
     });
   });
 
-  socket.on("cursor_move", (data) => {
-    console.log(JSON.stringify(data));
-    socket.emit("cursor_move", data);
+  socket.on("user_cursor_move", (data) => {
+    users[socket.id][cursorPosition] = data;
+    socket.emit("user_cursor_move", {
+        allOnlineUsers: users,
+        newCursorPosition: data,
+        userPerformingThisAction: socket.id
+      });
   });
 
   socket.on("disconnect", () => {
