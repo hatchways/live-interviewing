@@ -10,8 +10,7 @@ let users = {};
 let files = {}
 
 io.on("connection", (socket) => {
-  const randomColor = "#" + Math.floor(Math.random()*16777215).toString(16); 
-  users[socket.id] = { cursorPosition: null, name: "Anonymous", filePosition: "", color: randomColor };
+  users[socket.id] = { cursorPosition: null, name: "Anonymous", filePosition: "", color: random_rgba() };
 
   console.log("user connecting to socket", socket.id);
 
@@ -24,30 +23,22 @@ io.on("connection", (socket) => {
   });
 
   socket.on("user_click_on_file", (fileUri) => {
-    const previousFileClicked = users[socket.id]["filePosition"];
     users[socket.id]["filePosition"] = fileUri;
 
     if (!fileUri || fileUri?.fsPath === undefined){
       return;
     }
 
-    if (fileUri.fsPath in files && fileUri.fsPath && files[fileUri.fsPath]?.users){
+    removeUserFromFiles(socket);
+
+    if (fileUri.fsPath in files && files[fileUri.fsPath]?.users){
       files[fileUri.fsPath]["users"].push(socket.id);
     } else {
       files[fileUri.fsPath] = {"uri": fileUri, "users": [socket.id]}
     }
 
-    // Remove from previous file
-    const usersInPreviousFile = previousFileClicked.fsPath in files ? files[previousFileClicked.fsPath]["users"] : [];
+    console.log("files here", files);
 
-    const index = usersInPreviousFile.findIndex(id => id === socket.id);
-    if (index > -1){
-      usersInPreviousFile.splice(index, 1);
-    }
-    // files[previousFileClicked.fsPath] = usersInPreviousFile;
-
-    console.log("files!!!!", files);
-    
     io.emit("user_click_on_file", {
       allOnlineUsers: users,
       newFileClicked: fileUri,
@@ -58,7 +49,7 @@ io.on("connection", (socket) => {
 
   socket.on("user_cursor_move", (data) => {
     users[socket.id]['cursorPosition'] = data;
-    io.emit("user_cursor_move", {
+    socket.broadcast.emit("user_cursor_move", {
         allOnlineUsers: users,
         newCursorPosition: data,
         userPerformingThisAction: socket.id
@@ -66,12 +57,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-
     const userName = users[socket.id]?.name;
-    delete users[socket.id]
     socket.broadcast.emit("user_leave", `${userName} has left the interview.`)
 
-    console.log("user disconnect", users);
+    removeUserFromFiles(socket);
+    delete users[socket.id]
+
     io.emit("all_users", {  
       allOnlineUsers: users,
     });
@@ -81,3 +72,23 @@ io.on("connection", (socket) => {
 server.listen(4000, () => {
   console.log("listening on *:4000");
 });
+
+
+const removeUserFromFiles = (socket) => {
+    // Remove from previous file
+    const previousFileClicked = users[socket.id]["filePosition"];
+    const usersInPreviousFile = previousFileClicked.fsPath in files ? files[previousFileClicked.fsPath]["users"] : [];
+    const index = usersInPreviousFile.findIndex(id => id === socket.id);
+    if (index > -1){
+      usersInPreviousFile.splice(index, 1);
+    }    
+}
+
+function random_rgba() {
+  // Generate a random RGB color associated with that user
+  const randomBetween = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+  const r = randomBetween(0, 255);
+  const g = randomBetween(0, 255);
+  const b = randomBetween(0, 255);
+  return { r, g, b };
+}

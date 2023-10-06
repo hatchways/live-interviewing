@@ -16,10 +16,6 @@ export function activate(context: vscode.ExtensionContext) {
   // Initialize variables
   const socket = io(SOCKET_URL);
 
-  
-  // let currFileDecorationProvider: any | null = null;
-  let cursorDecoration: vscode.TextEditorDecorationType | null = null;
-
   // Sidebar
   const sidebarProvider = new SidebarProvider(
     context.extensionUri,
@@ -68,27 +64,27 @@ export function activate(context: vscode.ExtensionContext) {
   })
 
   // When user open a file
-  let disposableCurrFileDecorationProvider: any = [];
+  let disposableCurrFileDecorationProviders: any = [];
   socket.on(USER_CLICK_ON_FILE, (value, callback) => {
     updateUserState(value, context);
-    for (const d of disposableCurrFileDecorationProvider){
+    for (const d of disposableCurrFileDecorationProviders){
       d.dispose();
     }
 
-    disposableCurrFileDecorationProvider = [];
+    disposableCurrFileDecorationProviders = [];
     // For each online user, register a FileDecorationProvider
     for (const userId in value["allOnlineUsers"]){
       const currFileDecorationProvider = new FileDecorationProvider(
-        context.globalState,
         socket,
         value,
         userId
       );
-      disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
+      disposableCurrFileDecorationProviders.push(currFileDecorationProvider);
     }
   });
 
   // When user click on a line
+  let disposableCursorDecorations: any = {};
   socket.on(USER_CURSOR_MOVE, (value) => {
     updateUserState(value, context);
 
@@ -97,7 +93,12 @@ export function activate(context: vscode.ExtensionContext) {
     	return
     }
 
-    const data = value["newCursorPosition"]
+    // Remove previous cursor because the user is moving onto a new file now.
+    if (userPerformingThisAction in disposableCursorDecorations){
+      disposableCursorDecorations[userPerformingThisAction].dispose();
+    }
+
+    const data = value["newCursorPosition"];
     let startPosition: vscode.Position = new vscode.Position(
       data.selections[0].start.line,
       data.selections[0].start.character
@@ -107,11 +108,14 @@ export function activate(context: vscode.ExtensionContext) {
       data.selections[0].end.character
     );
 
+    const user = value["allOnlineUsers"][userPerformingThisAction];
+    const { r, g, b } = user?.color;
+    const hex = "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+
     const activeEditor = vscode.window.activeTextEditor;
-    cursorDecoration = vscode.window.createTextEditorDecorationType({
-      // Red color for demonstration. Adjust as needed.
-      backgroundColor: "rgba(255,0,0,0.3)", 
-      border: "2px solid red",
+    const cursorDecoration = vscode.window.createTextEditorDecorationType({
+      backgroundColor: `rgba(${r}, ${g}, ${b}, 0.3)`,
+      border: `2px solid ${hex}`,
     });
 
     if (data.filePath !== activeEditor?.document.uri.path) {
@@ -122,10 +126,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     activeEditor?.setDecorations(cursorDecoration, [
       {
-        hoverMessage: "Message",
+        hoverMessage: user?.name,
         range: new vscode.Range(startPosition, endPosition),
       },
     ]);
+
+    disposableCursorDecorations[userPerformingThisAction] = cursorDecoration; 
   });
 
 
@@ -142,10 +148,6 @@ export function activate(context: vscode.ExtensionContext) {
   if (vscode.window.activeTextEditor) {
     context.subscriptions.push(
       vscode.window.onDidChangeTextEditorSelection((event) => {
-        // Remove previous cursor
-        if (cursorDecoration){
-          cursorDecoration.dispose();
-        }
         // Send new cursor position
         if (event.textEditor === vscode.window.activeTextEditor) {
           // socket.emit(USER_CLICK_ON_FILE, event.textEditor.document.uri);

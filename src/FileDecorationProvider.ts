@@ -7,7 +7,6 @@ export class FileDecorationProvider
   implements vscode.Disposable, vscode.FileDecorationProvider
 {
   onDidChangeFileDecorations: vscode.Event<vscode.Uri>;
-  globalState: vscode.Memento;
   disposable: vscode.Disposable;  
  
   socket: Socket;
@@ -16,10 +15,8 @@ export class FileDecorationProvider
 
   emitter = new vscode.EventEmitter<vscode.Uri>();
 
-
-  public constructor(globalState: vscode.Memento, socket: Socket, value: Map, user: any) {
+  public constructor(socket: Socket, value: Map, user: any) {
     this.onDidChangeFileDecorations = this.emitter.event;
-    this.globalState = globalState;
     this.socket = socket;
     this.disposable = vscode.window.registerFileDecorationProvider(this);
     this.userOnFile = user;
@@ -58,6 +55,7 @@ export class FileDecorationProvider
     
     if (doc != undefined && !doc.isUntitled) {
       if (this.userOnFile === this.socket.id){
+
         if (pathBeingViewed === doc.fileName){
           result = new vscode.FileDecoration(badge?.[0], `${badge} is on this file`);
         }
