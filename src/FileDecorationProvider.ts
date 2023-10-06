@@ -17,11 +17,12 @@ export class FileDecorationProvider
   emitter = new vscode.EventEmitter<vscode.Uri>();
 
 
-  public constructor(globalState: vscode.Memento, socket: Socket, value: Map) {
+  public constructor(globalState: vscode.Memento, socket: Socket, value: Map, user: any) {
     this.onDidChangeFileDecorations = this.emitter.event;
     this.globalState = globalState;
     this.socket = socket;
     this.disposable = vscode.window.registerFileDecorationProvider(this);
+    this.userOnFile = user;
 
     /**
      * this.emitter.fire only allow us to set a single letter, such as "A" onto a file decoration.
@@ -32,33 +33,37 @@ export class FileDecorationProvider
     const files = this.socketFileEventValue?.files;
     for (const filePath in files){
       const uri = files[filePath]["uri"];
-      const users = files[filePath]["users"];
-      console.log(uri, users);
-      for (const user of users){
-        this.userOnFile = value["allOnlineUsers"][user]?.name;
-        this.emitter.fire(uri);
-      }
+      this.emitter.fire(uri);
     }
   }
 
-
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     let result: vscode.FileDecoration | undefined = undefined;
+    const files = this.socketFileEventValue?.files;
+    const users = files[uri.fsPath]["users"];
+    
+    // User is not on the file
+    if (this.userOnFile && !(users.includes(this.userOnFile))){
+      return result;
+    }
 
     // Assign decorator to the current file the user are clicking on
     const doc = vscode.workspace.textDocuments.find(
       (d) => d.uri.toString() == uri.toString()
     );
+    const activeEditor = vscode.window.activeTextEditor;
+    const pathBeingViewed = activeEditor ? activeEditor.document.uri.path : null;
+
+    let badge = this.userOnFile;
+    
     if (doc != undefined && !doc.isUntitled) {
-      let badge = this.userOnFile;
-      const files = this.socketFileEventValue?.files;
-      if (files[uri.fsPath]["users"]?.length > 0){
-       badge = badge?.[0];
+      if (this.userOnFile === this.socket.id){
+        if (pathBeingViewed === doc.fileName){
+          result = new vscode.FileDecoration(badge?.[0], `${badge} is on this file`);
+        }
       } else {
-        // If no users are on a file, the default decoration will be an empty string;
-        badge = "";
+        result = new vscode.FileDecoration(badge?.[0], `${badge} is on this file`);
       }
-      result = new vscode.FileDecoration(badge, `${badge} is on this file`);
     }
     return result;
   }

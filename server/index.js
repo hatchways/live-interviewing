@@ -13,6 +13,8 @@ io.on("connection", (socket) => {
   const randomColor = "#" + Math.floor(Math.random()*16777215).toString(16); 
   users[socket.id] = { cursorPosition: null, name: "Anonymous", filePosition: "", color: randomColor };
 
+  console.log("user connecting to socket", socket.id);
+
   socket.on("user_join", (userName) => {
     users[socket.id]["name"] = userName;
     io.emit("all_users", {
@@ -35,8 +37,6 @@ io.on("connection", (socket) => {
       files[fileUri.fsPath] = {"uri": fileUri, "users": [socket.id]}
     }
 
-    console.log("files!!!!", files);
-
     // Remove from previous file
     const usersInPreviousFile = previousFileClicked.fsPath in files ? files[previousFileClicked.fsPath]["users"] : [];
 
@@ -45,6 +45,8 @@ io.on("connection", (socket) => {
       usersInPreviousFile.splice(index, 1);
     }
     // files[previousFileClicked.fsPath] = usersInPreviousFile;
+
+    console.log("files!!!!", files);
     
     io.emit("user_click_on_file", {
       allOnlineUsers: users,
@@ -64,11 +66,13 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+
     const userName = users[socket.id]?.name;
     delete users[socket.id]
     socket.broadcast.emit("user_leave", `${userName} has left the interview.`)
 
-    io.emit("all_users", {
+    console.log("user disconnect", users);
+    io.emit("all_users", {  
       allOnlineUsers: users,
     });
   });

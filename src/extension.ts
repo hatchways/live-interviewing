@@ -69,27 +69,23 @@ export function activate(context: vscode.ExtensionContext) {
 
   // When user open a file
   let disposableCurrFileDecorationProvider: any = [];
-  let currFileDecorationProvider: any = null;
   socket.on(USER_CLICK_ON_FILE, (value, callback) => {
     updateUserState(value, context);
-
-    if (currFileDecorationProvider){
-      currFileDecorationProvider.dispose();
+    for (const d of disposableCurrFileDecorationProvider){
+      d.dispose();
     }
-    
-    // for (const d of disposableCurrFileDecorationProvider){
-    //   d.dispose()
-    // }
-    // for (const user in value["allOnlineUsers"]){
-    currFileDecorationProvider = new FileDecorationProvider(
-      context.globalState,
-      socket,
-      value
-    );
-    
-    // disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
 
-    // }
+    disposableCurrFileDecorationProvider = [];
+    // For each online user, register a FileDecorationProvider
+    for (const userId in value["allOnlineUsers"]){
+      const currFileDecorationProvider = new FileDecorationProvider(
+        context.globalState,
+        socket,
+        value,
+        userId
+      );
+      disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
+    }
   });
 
   // When user click on a line

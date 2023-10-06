@@ -10,12 +10,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FileDecorationProvider = void 0;
 const vscode = __webpack_require__(2);
 class FileDecorationProvider {
-    constructor(globalState, socket, value) {
+    constructor(globalState, socket, value, user) {
         this.emitter = new vscode.EventEmitter();
         this.onDidChangeFileDecorations = this.emitter.event;
         this.globalState = globalState;
         this.socket = socket;
         this.disposable = vscode.window.registerFileDecorationProvider(this);
+        this.userOnFile = user;
         /**
          * this.emitter.fire only allow us to set a single letter, such as "A" onto a file decoration.
          * Each user's name, such as "John", will be represented as "J".
@@ -25,29 +26,31 @@ class FileDecorationProvider {
         const files = this.socketFileEventValue?.files;
         for (const filePath in files) {
             const uri = files[filePath]["uri"];
-            const users = files[filePath]["users"];
-            console.log(uri, users);
-            for (const user of users) {
-                this.userOnFile = value["allOnlineUsers"][user]?.name;
-                this.emitter.fire(uri);
-            }
+            this.emitter.fire(uri);
         }
     }
     provideFileDecoration(uri) {
         let result = undefined;
+        const files = this.socketFileEventValue?.files;
+        const users = files[uri.fsPath]["users"];
+        // User is not on the file
+        if (this.userOnFile && !(users.includes(this.userOnFile))) {
+            return result;
+        }
         // Assign decorator to the current file the user are clicking on
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
+        const activeEditor = vscode.window.activeTextEditor;
+        const pathBeingViewed = activeEditor ? activeEditor.document.uri.path : null;
+        let badge = this.userOnFile;
         if (doc != undefined && !doc.isUntitled) {
-            let badge = this.userOnFile;
-            const files = this.socketFileEventValue?.files;
-            if (files[uri.fsPath]["users"]?.length > 0) {
-                badge = badge?.[0];
+            if (this.userOnFile === this.socket.id) {
+                if (pathBeingViewed === doc.fileName) {
+                    result = new vscode.FileDecoration(badge?.[0], `${badge} is on this file`);
+                }
             }
             else {
-                // If no users are on a file, the default decoration will be an empty string;
-                badge = "";
+                result = new vscode.FileDecoration(badge?.[0], `${badge} is on this file`);
             }
-            result = new vscode.FileDecoration(badge, `${badge} is on this file`);
         }
         return result;
     }
@@ -11237,19 +11240,17 @@ function activate(context) {
     });
     // When user open a file
     let disposableCurrFileDecorationProvider = [];
-    let currFileDecorationProvider = null;
     socket.on(constants_1.USER_CLICK_ON_FILE, (value, callback) => {
         updateUserState(value, context);
-        if (currFileDecorationProvider) {
-            currFileDecorationProvider.dispose();
+        for (const d of disposableCurrFileDecorationProvider) {
+            d.dispose();
         }
-        // for (const d of disposableCurrFileDecorationProvider){
-        //   d.dispose()
-        // }
-        // for (const user in value["allOnlineUsers"]){
-        currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(context.globalState, socket, value);
-        // disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
-        // }
+        disposableCurrFileDecorationProvider = [];
+        // For each online user, register a FileDecorationProvider
+        for (const userId in value["allOnlineUsers"]) {
+            const currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(context.globalState, socket, value, userId);
+            disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
+        }
     });
     // When user click on a line
     socket.on(constants_1.USER_CURSOR_MOVE, (value) => {
