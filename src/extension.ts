@@ -15,7 +15,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Initialize variables
   const socket = io(SOCKET_URL);
-  let currFileDecorationProvider: any | null = null;
+
+  
+  // let currFileDecorationProvider: any | null = null;
   let cursorDecoration: vscode.TextEditorDecorationType | null = null;
 
   // Sidebar
@@ -66,16 +68,31 @@ export function activate(context: vscode.ExtensionContext) {
   })
 
   // When user open a file
+  let disposableCurrFileDecorationProvider = [];
+  // let currFileDecorationProvider = null;
   socket.on(USER_CLICK_ON_FILE, (value, callback) => {
     updateUserState(value, context);
-    if (currFileDecorationProvider) {
-      currFileDecorationProvider.dispose();
+    // if (currFileDecorationProvider){
+    //   currFileDecorationProvider.dispose();
+    // }
+    for (const d of disposableCurrFileDecorationProvider){
+      d.dispose()
     }
-    currFileDecorationProvider = new FileDecorationProvider(
-      context.globalState,
-      socket
-    );
-    currFileDecorationProvider.setValue(value);
+    for (const user in value["allOnlineUsers"]){
+      // console.log("user", user);
+      const currFileDecorationProvider = new FileDecorationProvider(
+        context.globalState,
+        socket,
+        user
+      );
+      currFileDecorationProvider.setValue(value);
+      disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
+    }
+    // currFileDecorationProvider = new FileDecorationProvider(
+    //   context.globalState,
+    //   socket,
+    // );
+    // currFileDecorationProvider.setValue(value);
   });
 
   // When user click on a line
@@ -136,10 +153,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (cursorDecoration){
           cursorDecoration.dispose();
         }
-        // if (currFileDecorationProvider) {
-        //   console.log("this is call????", currFileDecorationProvider)
-        //   currFileDecorationProvider.dispose();
-        // }
         // Send new cursor position
         if (event.textEditor === vscode.window.activeTextEditor) {
           // socket.emit(USER_CLICK_ON_FILE, event.textEditor.document.uri);

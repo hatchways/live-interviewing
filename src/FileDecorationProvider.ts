@@ -4,21 +4,24 @@ import * as vscode from "vscode";
 export class FileDecorationProvider
   implements vscode.Disposable, vscode.FileDecorationProvider
 {
-  badge: string;
   onDidChangeFileDecorations: vscode.Event<vscode.Uri>;
   globalState: vscode.Memento;
   disposable: vscode.Disposable;
  
   socket: Socket;
   socketFileEventValue: any;
+  badge: string | undefined;
+  userSocketId: string;
 
   emitter = new vscode.EventEmitter<vscode.Uri>();
 
-  public constructor(globalState: vscode.Memento, socket: Socket) {
+  //  userSocketId: string
+  public constructor(globalState: vscode.Memento, socket: Socket, userSocketId: string) {
     this.onDidChangeFileDecorations = this.emitter.event;
     this.globalState = globalState;
     this.socket = socket;
     this.disposable = vscode.window.registerFileDecorationProvider(this);
+    this.userSocketId = userSocketId;    
   }
 
   public setValue(value: any) {
@@ -27,10 +30,10 @@ export class FileDecorationProvider
     for (const file in files){
       // @ts-ignore
       const uri = file["uri"];
-      console.log("uri", uri);
       this.emitter.fire(uri);
     }
-    this.badge = value["allOnlineUsers"][this.socket.id]?.name;
+    this.badge = value["allOnlineUsers"][this.userSocketId]?.name;
+    // this.badge = "Anonymous"
   }
 
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
@@ -41,10 +44,11 @@ export class FileDecorationProvider
       (d) => d.uri.toString() == uri.toString()
     );
     if (doc != undefined && !doc.isUntitled) {
+      // If no users are on a file, the default decoration will be an empty tring;
       let badge = "";
       const files = this.socketFileEventValue?.files;
       if (files[uri.fsPath]["users"]?.length > 0){
-        badge = this.badge?.[0];
+       badge = this.badge?.[0];
       }
       result = new vscode.FileDecoration(badge, `${this.badge} is on this file`);
     }

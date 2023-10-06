@@ -10,12 +10,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FileDecorationProvider = void 0;
 const vscode = __webpack_require__(2);
 class FileDecorationProvider {
-    constructor(globalState, socket) {
+    //  userSocketId: string
+    constructor(globalState, socket, userSocketId) {
         this.emitter = new vscode.EventEmitter();
         this.onDidChangeFileDecorations = this.emitter.event;
         this.globalState = globalState;
         this.socket = socket;
         this.disposable = vscode.window.registerFileDecorationProvider(this);
+        this.userSocketId = userSocketId;
     }
     setValue(value) {
         this.socketFileEventValue = value;
@@ -23,16 +25,17 @@ class FileDecorationProvider {
         for (const file in files) {
             // @ts-ignore
             const uri = file["uri"];
-            console.log("uri", uri);
             this.emitter.fire(uri);
         }
-        this.badge = value["allOnlineUsers"][this.socket.id]?.name;
+        this.badge = value["allOnlineUsers"][this.userSocketId]?.name;
+        // this.badge = "Anonymous"
     }
     provideFileDecoration(uri) {
         let result = undefined;
         // Assign decorator to the current file the user are clicking on
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
         if (doc != undefined && !doc.isUntitled) {
+            // If no users are on a file, the default decoration will be an empty tring;
             let badge = "";
             const files = this.socketFileEventValue?.files;
             if (files[uri.fsPath]["users"]?.length > 0) {
@@ -11201,7 +11204,7 @@ function activate(context) {
     config.update("autoSaveDelay", 100, true);
     // Initialize variables
     const socket = (0, socket_io_client_1.io)(constants_1.SOCKET_URL);
-    let currFileDecorationProvider = null;
+    // let currFileDecorationProvider: any | null = null;
     let cursorDecoration = null;
     // Sidebar
     const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, context.globalState, socket);
@@ -11226,13 +11229,27 @@ function activate(context) {
         vscode.window.showInformationMessage(message);
     });
     // When user open a file
+    let disposableCurrFileDecorationProvider = [];
+    // let currFileDecorationProvider = null;
     socket.on(constants_1.USER_CLICK_ON_FILE, (value, callback) => {
         updateUserState(value, context);
-        if (currFileDecorationProvider) {
-            currFileDecorationProvider.dispose();
+        // if (currFileDecorationProvider){
+        //   currFileDecorationProvider.dispose();
+        // }
+        for (const d of disposableCurrFileDecorationProvider) {
+            d.dispose();
         }
-        currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(context.globalState, socket);
-        currFileDecorationProvider.setValue(value);
+        for (const user in value["allOnlineUsers"]) {
+            // console.log("user", user);
+            const currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(context.globalState, socket, user);
+            currFileDecorationProvider.setValue(value);
+            disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
+        }
+        // currFileDecorationProvider = new FileDecorationProvider(
+        //   context.globalState,
+        //   socket,
+        // );
+        // currFileDecorationProvider.setValue(value);
     });
     // When user click on a line
     socket.on(constants_1.USER_CURSOR_MOVE, (value) => {
@@ -11275,10 +11292,6 @@ function activate(context) {
             if (cursorDecoration) {
                 cursorDecoration.dispose();
             }
-            // if (currFileDecorationProvider) {
-            //   console.log("this is call????", currFileDecorationProvider)
-            //   currFileDecorationProvider.dispose();
-            // }
             // Send new cursor position
             if (event.textEditor === vscode.window.activeTextEditor) {
                 // socket.emit(USER_CLICK_ON_FILE, event.textEditor.document.uri);
