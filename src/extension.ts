@@ -90,7 +90,9 @@ export function activate(context: vscode.ExtensionContext) {
   let disposableCursorDecorations: any = {};
   socket.on(
     CURSOR_MOVE,
-    ({ userPerformingThisAction, cursorPosition, allOnlineUsers }) => {
+    (data) => {
+      const { userPerformingThisAction, cursorPosition, allOnlineUsers } = data;
+    
       // Remove previous cursor because the user is moving onto a new file now.
       if (userPerformingThisAction in disposableCursorDecorations) {
         disposableCursorDecorations[userPerformingThisAction].dispose();
@@ -145,26 +147,23 @@ export function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+  
+  context.subscriptions.push(
+    vscode.window.onDidChangeTextEditorSelection((event) => {
+      // Send new cursor position
+        socket.emit(CURSOR_MOVE, {
+          sessionId,
+          cursorPosition: {
+            startLine: event.selections[0].start.line,
+            startCharacter: event.selections[0].start.character,
+            endLine: event.selections[0].end.line,
+            endCharacter: event.selections[0].end.character,
+            filePath: event.textEditor.document.uri.path,
+          },
+        });
+    })
+  );
 
-  if (vscode.window.activeTextEditor) {
-    context.subscriptions.push(
-      vscode.window.onDidChangeTextEditorSelection((event) => {
-        // Send new cursor position
-        if (event.textEditor === vscode.window.activeTextEditor) {
-          socket.emit(CURSOR_MOVE, {
-            sessionId,
-            cursorPosition: {
-              startLine: event.selections[0].start.line,
-              startCharacter: event.selections[0].start.character,
-              endLine: event.selections[0].end.line,
-              endCharacter: event.selections[0].end.character,
-              filePath: event.textEditor.document.uri.path,
-            },
-          });
-        }
-      })
-    );
-  }
 }
 
 // This method is called when your extension is deactivated

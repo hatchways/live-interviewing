@@ -57,6 +57,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("cursorMove", ({ sessionId, cursorPosition }) => {
+    console.log(`Socket ${socket.id} of room ${sessionId} moved cursor`);
     users[socket.id]["cursorPosition"] = cursorPosition;
     socket.to(sessionId).emit("cursorMove", {
       allOnlineUsers: users,
