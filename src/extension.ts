@@ -1,13 +1,6 @@
 import { FileDecorationProvider } from "./FileDecorationProvider";
 import { SidebarProvider } from "./SidebarProvider";
-import {
-  ALL_USERS,
-  SOCKET_URL,
-  USER_CLICK_ON_FILE,
-  USER_CURSOR_MOVE,
-  USER_JOIN,
-  USER_LEAVE,
-} from "./utils/constants";
+import { SOCKET_URL, USER_READY, JOIN_SESSION, FILE_CLICK, CURSOR_MOVE, DISCONNECT} from "./utils/constants";
 import { io } from "socket.io-client";
 import * as vscode from "vscode";
 
@@ -19,13 +12,16 @@ export function activate(context: vscode.ExtensionContext) {
   config.update("autoSave", "afterDelay", true);
   config.update("autoSaveDelay", 100, true);
 
+  const workspace = vscode.workspace.workspaceFolders?.[0];
+  const sessionId = workspace?.name || "";
+
   // Initialize variables
   const socket = io(SOCKET_URL);
 
   // Sidebar
   const sidebarProvider = new SidebarProvider(
     context.extensionUri,
-    context.globalState,
+    sessionId,
     socket
   );
   context.subscriptions.push(
@@ -53,31 +49,27 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
   vscode.commands.executeCommand("hatchways-sidebar.focus");
 
-  // Update all users state
-  socket.on(ALL_USERS, (value, callback) => {
-    updateUserState(value, context);
-  });
 
-  // When user joined
-  socket.on(USER_JOIN, (message) => {
+  // When user submitted their name to the interivew
+  socket.on(USER_READY, (message) => {
     vscode.window.showInformationMessage(message);
   });
 
-  // Whe user left
-  socket.on(USER_LEAVE, (message) => {
+  // When user left
+  socket.on(DISCONNECT, (message) => {
     vscode.window.showInformationMessage(message);
   });
 
   // When user open a file
   let disposableCurrFileDecorationProviders: any = [];
-  socket.on(USER_CLICK_ON_FILE, (value, callback) => {
-    updateUserState(value, context);
+  socket.on(FILE_CLICK, (value) => {
+    console.log("file click????", value);
     for (const d of disposableCurrFileDecorationProviders) {
       d.dispose();
     }
 
+     // For each online user, register a FileDecorationProvider
     disposableCurrFileDecorationProviders = [];
-    // For each online user, register a FileDecorationProvider
     for (const userId in value["allOnlineUsers"]) {
       const currFileDecorationProvider = new FileDecorationProvider(
         socket,
@@ -90,9 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // When user click on a line
   let disposableCursorDecorations: any = {};
-  socket.on(USER_CURSOR_MOVE, (value) => {
-    updateUserState(value, context);
-
+  socket.on(CURSOR_MOVE, (value) => {
     const userPerformingThisAction = value["userPerformingThisAction"];
     if (userPerformingThisAction === socket.id) {
       return;
@@ -145,7 +135,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       const doc = editor?.document;
       if (doc?.uri) {
-        socket.emit(USER_CLICK_ON_FILE, doc?.uri);
+        socket.emit(FILE_CLICK, {sessionId, fileUri: doc?.uri});
       }
     })
   );
@@ -155,8 +145,8 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.onDidChangeTextEditorSelection((event) => {
         // Send new cursor position
         if (event.textEditor === vscode.window.activeTextEditor) {
-          // socket.emit(USER_CLICK_ON_FILE, event.textEditor.document.uri);
-          socket.emit(USER_CURSOR_MOVE, {
+          socket.emit(CURSOR_MOVE, {
+            sessionId,
             selections: event.selections,
             socketId: socket.id,
             filePath: event.textEditor.document.uri.path,
@@ -169,8 +159,3 @@ export function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
-
-function updateUserState(value: any, context: any) {
-  const allOnlineUsers = value["allOnlineUsers"];
-  context.globalState.update(ALL_USERS, allOnlineUsers);
-}

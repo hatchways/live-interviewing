@@ -17,17 +17,13 @@ io.on("connection", (socket) => {
     color: random_rgba(),
   };
 
-  console.log("user connecting to socket", socket.id);
-
-  socket.on("user_join", (userName) => {
-    users[socket.id]["name"] = userName;
-    io.emit("all_users", {
-      allOnlineUsers: users,
-    });
-    socket.broadcast.emit("user_join", `${userName} has joined the interview.`);
+  socket.on("joinSession", async ({sessionId, userName}) => {
+    await socket.join(sessionId);
+    console.log(`Socket ${socket.id} with name ${userName} joined room ${sessionId}`);
+    socket.to(sessionId).emit("userReady", `${userName} has joined the interview.`);
   });
 
-  socket.on("user_click_on_file", (fileUri) => {
+  socket.on("fileClick", ({sessionId, fileUri}) => {
     removeUserFromFiles(socket);
     users[socket.id]["filePosition"] = fileUri;
 
@@ -41,35 +37,41 @@ io.on("connection", (socket) => {
       files[fileUri.fsPath] = { uri: fileUri, users: [socket.id] };
     }
 
-    console.log("files here", files);
-
-    io.emit("user_click_on_file", {
+    io.sockets.in(socket.room).emit("fileClick", {
       allOnlineUsers: users,
       newFileClicked: fileUri,
       userPerformingThisAction: socket.id,
       files,
     });
+
+    console.log(`Socket ${socket.id} of room ${sessionId} clicked on file ${fileUri.fsPath}`);
   });
 
-  socket.on("user_cursor_move", (data) => {
-    users[socket.id]["cursorPosition"] = data;
-    io.emit("user_cursor_move", {
+  socket.on("cursorMove", ({
+    sessionId,
+    selections,
+    socketId,
+    filePath
+  }) => {
+    users[socket.id]["cursorPosition"] = { selections, socketId, filePath }
+    socket.to(sessionId).emit("cursorMove", {
       allOnlineUsers: users,
-      newCursorPosition: data,
+      newCursorPosition: users[socket.id]["cursorPosition"],
       userPerformingThisAction: socket.id,
     });
+
+    console.log(`Socket ${socket.id} of room ${sessionId} moved cursor`);
   });
 
-  socket.on("disconnect", () => {
-    const userName = users[socket.id]?.name;
-    socket.broadcast.emit("user_leave", `${userName} has left the interview.`);
-
+  socket.on("disconnect", (sessionId) => {
     removeUserFromFiles(socket);
+    const userName = users[socket.id]?.name;
+    socket.to(sessionId).emit("userLeave", `${userName} has left the interview.`);
+
     delete users[socket.id];
 
-    io.emit("all_users", {
-      allOnlineUsers: users,
-    });
+    socket.leave(sessionId)
+    console.log(`Socket ${socket.id} of room ${sessionId} left`);
   });
 });
 
@@ -80,7 +82,6 @@ server.listen(4000, () => {
 const removeUserFromFiles = (socket) => {
   // Remove from previous file
   const previousFileClicked = users[socket.id]["filePosition"];
-  console.log("previous file clciked");
   const usersInPreviousFile =
     previousFileClicked.fsPath in files
       ? files[previousFileClicked.fsPath]["users"]
@@ -88,12 +89,6 @@ const removeUserFromFiles = (socket) => {
   const index = usersInPreviousFile.findIndex((id) => id === socket.id);
   if (index > -1) {
     usersInPreviousFile.splice(index, 1);
-    console.log(
-      "remove user from file",
-      socket.id,
-      "file",
-      previousFileClicked.fsPath
-    );
   }
 };
 

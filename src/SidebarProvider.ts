@@ -1,4 +1,4 @@
-import { CURRENT_USER, USER_JOIN } from "./utils/constants";
+import { JOIN_SESSION } from "./utils/constants";
 import { getNonce } from "./utils/getNonce";
 import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
@@ -11,7 +11,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
-    private _globalState: vscode.Memento,
+    private readonly _sessionId: string,
     private _socket: Socket
   ) {}
 
@@ -33,7 +33,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           if (!data.value) {
             return;
           }
-          this._socket.emit(USER_JOIN, data.value);
+          this._socket.emit(JOIN_SESSION, {sessionId: this._sessionId, userName: data.value});
           if (vscode.workspace.workspaceFolders) {
             const workspace = vscode.workspace.workspaceFolders?.[0];
             // Todo: fetch from our API ? what file to open as the initial starting point

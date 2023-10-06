@@ -82,11 +82,11 @@ exports.SidebarProvider = void 0;
 const constants_1 = __webpack_require__(4);
 const getNonce_1 = __webpack_require__(5);
 const vscode = __webpack_require__(2);
-const path = __webpack_require__(70);
+const path = __webpack_require__(6);
 class SidebarProvider {
-    constructor(_extensionUri, _globalState, _socket) {
+    constructor(_extensionUri, _sessionId, _socket) {
         this._extensionUri = _extensionUri;
-        this._globalState = _globalState;
+        this._sessionId = _sessionId;
         this._socket = _socket;
     }
     resolveWebviewView(webviewView) {
@@ -103,7 +103,7 @@ class SidebarProvider {
                     if (!data.value) {
                         return;
                     }
-                    this._socket.emit(constants_1.USER_JOIN, data.value);
+                    this._socket.emit(constants_1.JOIN_SESSION, { sessionId: this._sessionId, userName: data.value });
                     if (vscode.workspace.workspaceFolders) {
                         const workspace = vscode.workspace.workspaceFolders?.[0];
                         // Todo: fetch from our API ? what file to open as the initial starting point
@@ -173,15 +173,13 @@ exports.SidebarProvider = SidebarProvider;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SOCKET_URL = exports.USER_LEAVE = exports.USER_CURSOR_MOVE = exports.USER_CLICK_ON_FILE = exports.USER_JOIN = exports.ALL_USERS = exports.CURRENT_USER = void 0;
-// Global states
-exports.CURRENT_USER = "current_user";
-exports.ALL_USERS = "all_users";
+exports.SOCKET_URL = exports.DISCONNECT = exports.CURSOR_MOVE = exports.FILE_CLICK = exports.JOIN_SESSION = exports.USER_READY = void 0;
 // Socket events
-exports.USER_JOIN = "user_join";
-exports.USER_CLICK_ON_FILE = "user_click_on_file";
-exports.USER_CURSOR_MOVE = "user_cursor_move";
-exports.USER_LEAVE = "user_leave";
+exports.USER_READY = "userReady";
+exports.JOIN_SESSION = "joinSession";
+exports.FILE_CLICK = "fileClick";
+exports.CURSOR_MOVE = "cursorMove";
+exports.DISCONNECT = "userLeave";
 exports.SOCKET_URL = "https://8c20-173-33-99-170.ngrok-free.app";
 
 
@@ -206,6 +204,13 @@ exports.getNonce = getNonce;
 
 /***/ }),
 /* 6 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -215,12 +220,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = exports.connect = exports.io = exports.Socket = exports.Manager = exports.protocol = void 0;
-const url_js_1 = __webpack_require__(7);
-const manager_js_1 = __webpack_require__(63);
+const url_js_1 = __webpack_require__(8);
+const manager_js_1 = __webpack_require__(64);
 Object.defineProperty(exports, "Manager", ({ enumerable: true, get: function () { return manager_js_1.Manager; } }));
-const socket_js_1 = __webpack_require__(64);
+const socket_js_1 = __webpack_require__(65);
 Object.defineProperty(exports, "Socket", ({ enumerable: true, get: function () { return socket_js_1.Socket; } }));
-const debug_1 = __importDefault(__webpack_require__(20)); // debug()
+const debug_1 = __importDefault(__webpack_require__(21)); // debug()
 const debug = debug_1.default("socket.io-client"); // debug()
 /**
  * Managers cache.
@@ -274,14 +279,14 @@ Object.assign(lookup, {
  *
  * @public
  */
-var socket_io_parser_1 = __webpack_require__(65);
+var socket_io_parser_1 = __webpack_require__(66);
 Object.defineProperty(exports, "protocol", ({ enumerable: true, get: function () { return socket_io_parser_1.protocol; } }));
 
 module.exports = lookup;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -291,8 +296,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.url = void 0;
-const engine_io_client_1 = __webpack_require__(8);
-const debug_1 = __importDefault(__webpack_require__(20)); // debug()
+const engine_io_client_1 = __webpack_require__(9);
+const debug_1 = __importDefault(__webpack_require__(21)); // debug()
 const debug = debug_1.default("socket.io-client:url"); // debug()
 /**
  * URL parser.
@@ -358,30 +363,30 @@ exports.url = url;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.nextTick = exports.parse = exports.installTimerFunctions = exports.transports = exports.Transport = exports.protocol = exports.Socket = void 0;
-const socket_js_1 = __webpack_require__(9);
+const socket_js_1 = __webpack_require__(10);
 Object.defineProperty(exports, "Socket", ({ enumerable: true, get: function () { return socket_js_1.Socket; } }));
 exports.protocol = socket_js_1.Socket.protocol;
-var transport_js_1 = __webpack_require__(12);
+var transport_js_1 = __webpack_require__(13);
 Object.defineProperty(exports, "Transport", ({ enumerable: true, get: function () { return transport_js_1.Transport; } }));
-var index_js_1 = __webpack_require__(10);
+var index_js_1 = __webpack_require__(11);
 Object.defineProperty(exports, "transports", ({ enumerable: true, get: function () { return index_js_1.transports; } }));
-var util_js_1 = __webpack_require__(18);
+var util_js_1 = __webpack_require__(19);
 Object.defineProperty(exports, "installTimerFunctions", ({ enumerable: true, get: function () { return util_js_1.installTimerFunctions; } }));
-var parseuri_js_1 = __webpack_require__(62);
+var parseuri_js_1 = __webpack_require__(63);
 Object.defineProperty(exports, "parse", ({ enumerable: true, get: function () { return parseuri_js_1.parse; } }));
-var websocket_constructor_js_1 = __webpack_require__(40);
+var websocket_constructor_js_1 = __webpack_require__(41);
 Object.defineProperty(exports, "nextTick", ({ enumerable: true, get: function () { return websocket_constructor_js_1.nextTick; } }));
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -391,14 +396,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Socket = void 0;
-const index_js_1 = __webpack_require__(10);
-const util_js_1 = __webpack_require__(18);
-const parseqs_js_1 = __webpack_require__(30);
-const parseuri_js_1 = __webpack_require__(62);
-const debug_1 = __importDefault(__webpack_require__(20)); // debug()
-const component_emitter_1 = __webpack_require__(17);
-const engine_io_parser_1 = __webpack_require__(13);
-const websocket_constructor_js_1 = __webpack_require__(40);
+const index_js_1 = __webpack_require__(11);
+const util_js_1 = __webpack_require__(19);
+const parseqs_js_1 = __webpack_require__(31);
+const parseuri_js_1 = __webpack_require__(63);
+const debug_1 = __importDefault(__webpack_require__(21)); // debug()
+const component_emitter_1 = __webpack_require__(18);
+const engine_io_parser_1 = __webpack_require__(14);
+const websocket_constructor_js_1 = __webpack_require__(41);
 const debug = (0, debug_1.default)("engine.io-client:socket"); // debug()
 class Socket extends component_emitter_1.Emitter {
     /**
@@ -1014,16 +1019,16 @@ Socket.protocol = engine_io_parser_1.protocol;
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.transports = void 0;
-const polling_js_1 = __webpack_require__(11);
-const websocket_js_1 = __webpack_require__(39);
-const webtransport_js_1 = __webpack_require__(61);
+const polling_js_1 = __webpack_require__(12);
+const websocket_js_1 = __webpack_require__(40);
+const webtransport_js_1 = __webpack_require__(62);
 exports.transports = {
     websocket: websocket_js_1.WS,
     webtransport: webtransport_js_1.WT,
@@ -1032,7 +1037,7 @@ exports.transports = {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1042,14 +1047,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Request = exports.Polling = void 0;
-const transport_js_1 = __webpack_require__(12);
-const debug_1 = __importDefault(__webpack_require__(20)); // debug()
-const yeast_js_1 = __webpack_require__(31);
-const engine_io_parser_1 = __webpack_require__(13);
-const xmlhttprequest_js_1 = __webpack_require__(32);
-const component_emitter_1 = __webpack_require__(17);
-const util_js_1 = __webpack_require__(18);
-const globalThis_js_1 = __webpack_require__(19);
+const transport_js_1 = __webpack_require__(13);
+const debug_1 = __importDefault(__webpack_require__(21)); // debug()
+const yeast_js_1 = __webpack_require__(32);
+const engine_io_parser_1 = __webpack_require__(14);
+const xmlhttprequest_js_1 = __webpack_require__(33);
+const component_emitter_1 = __webpack_require__(18);
+const util_js_1 = __webpack_require__(19);
+const globalThis_js_1 = __webpack_require__(20);
 const debug = (0, debug_1.default)("engine.io-client:polling"); // debug()
 function empty() { }
 const hasXHR2 = (function () {
@@ -1453,7 +1458,7 @@ function unloadHandler() {
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1463,11 +1468,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Transport = void 0;
-const engine_io_parser_1 = __webpack_require__(13);
-const component_emitter_1 = __webpack_require__(17);
-const util_js_1 = __webpack_require__(18);
-const debug_1 = __importDefault(__webpack_require__(20)); // debug()
-const parseqs_js_1 = __webpack_require__(30);
+const engine_io_parser_1 = __webpack_require__(14);
+const component_emitter_1 = __webpack_require__(18);
+const util_js_1 = __webpack_require__(19);
+const debug_1 = __importDefault(__webpack_require__(21)); // debug()
+const parseqs_js_1 = __webpack_require__(31);
 const debug = (0, debug_1.default)("engine.io-client:transport"); // debug()
 class TransportError extends Error {
     constructor(reason, description, context) {
@@ -1611,18 +1616,18 @@ exports.Transport = Transport;
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.decodePayload = exports.decodePacket = exports.encodePayload = exports.encodePacket = exports.protocol = exports.createPacketDecoderStream = exports.createPacketEncoderStream = void 0;
-const encodePacket_js_1 = __webpack_require__(14);
+const encodePacket_js_1 = __webpack_require__(15);
 Object.defineProperty(exports, "encodePacket", ({ enumerable: true, get: function () { return encodePacket_js_1.encodePacket; } }));
-const decodePacket_js_1 = __webpack_require__(16);
+const decodePacket_js_1 = __webpack_require__(17);
 Object.defineProperty(exports, "decodePacket", ({ enumerable: true, get: function () { return decodePacket_js_1.decodePacket; } }));
-const commons_js_1 = __webpack_require__(15);
+const commons_js_1 = __webpack_require__(16);
 const SEPARATOR = String.fromCharCode(30); // see https://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
 const encodePayload = (packets, callback) => {
     // some packets may be added to the array while encoding, so the initial length must be saved
@@ -1782,14 +1787,14 @@ exports.protocol = 4;
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.encodePacketToBinary = exports.encodePacket = void 0;
-const commons_js_1 = __webpack_require__(15);
+const commons_js_1 = __webpack_require__(16);
 const encodePacket = ({ type, data }, supportsBinary, callback) => {
     if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
         return callback(supportsBinary ? data : "b" + toBuffer(data, true).toString("base64"));
@@ -1827,7 +1832,7 @@ exports.encodePacketToBinary = encodePacketToBinary;
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1853,14 +1858,14 @@ exports.ERROR_PACKET = ERROR_PACKET;
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.decodePacket = void 0;
-const commons_js_1 = __webpack_require__(15);
+const commons_js_1 = __webpack_require__(16);
 const decodePacket = (encodedPacket, binaryType) => {
     if (typeof encodedPacket !== "string") {
         return {
@@ -1919,7 +1924,7 @@ const mapBinary = (data, binaryType) => {
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -2099,14 +2104,14 @@ Emitter.prototype.hasListeners = function(event){
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.byteLength = exports.installTimerFunctions = exports.pick = void 0;
-const globalThis_js_1 = __webpack_require__(19);
+const globalThis_js_1 = __webpack_require__(20);
 function pick(obj, ...attr) {
     return attr.reduce((acc, k) => {
         if (obj.hasOwnProperty(k)) {
@@ -2164,7 +2169,7 @@ function utf8Length(str) {
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2175,7 +2180,7 @@ exports.globalThisShim = global;
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -2184,14 +2189,14 @@ exports.globalThisShim = global;
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-	module.exports = __webpack_require__(21);
+	module.exports = __webpack_require__(22);
 } else {
-	module.exports = __webpack_require__(24);
+	module.exports = __webpack_require__(25);
 }
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /* eslint-env browser */
@@ -2448,7 +2453,7 @@ function localstorage() {
 	}
 }
 
-module.exports = __webpack_require__(22)(exports);
+module.exports = __webpack_require__(23)(exports);
 
 const {formatters} = module.exports;
 
@@ -2466,7 +2471,7 @@ formatters.j = function (v) {
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
@@ -2482,7 +2487,7 @@ function setup(env) {
 	createDebug.disable = disable;
 	createDebug.enable = enable;
 	createDebug.enabled = enabled;
-	createDebug.humanize = __webpack_require__(23);
+	createDebug.humanize = __webpack_require__(24);
 	createDebug.destroy = destroy;
 
 	Object.keys(env).forEach(key => {
@@ -2746,7 +2751,7 @@ module.exports = setup;
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ ((module) => {
 
 /**
@@ -2914,15 +2919,15 @@ function plural(ms, msAbs, n, name) {
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /**
  * Module dependencies.
  */
 
-const tty = __webpack_require__(25);
-const util = __webpack_require__(26);
+const tty = __webpack_require__(26);
+const util = __webpack_require__(27);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -2948,7 +2953,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
 	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __webpack_require__(27);
+	const supportsColor = __webpack_require__(28);
 
 	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 		exports.colors = [
@@ -3156,7 +3161,7 @@ function init(debug) {
 	}
 }
 
-module.exports = __webpack_require__(22)(exports);
+module.exports = __webpack_require__(23)(exports);
 
 const {formatters} = module.exports;
 
@@ -3183,28 +3188,28 @@ formatters.O = function (v) {
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("tty");
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("util");
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const os = __webpack_require__(28);
-const tty = __webpack_require__(25);
-const hasFlag = __webpack_require__(29);
+const os = __webpack_require__(29);
+const tty = __webpack_require__(26);
+const hasFlag = __webpack_require__(30);
 
 const {env} = process;
 
@@ -3339,14 +3344,14 @@ module.exports = {
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("os");
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ ((module) => {
 
 "use strict";
@@ -3361,7 +3366,7 @@ module.exports = (flag, argv = process.argv) => {
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -3407,7 +3412,7 @@ exports.decode = decode;
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -3469,7 +3474,7 @@ for (; i < length; i++)
 
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -3499,7 +3504,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CookieJar = exports.parse = exports.createCookieJar = exports.XHR = void 0;
-const XMLHttpRequestModule = __importStar(__webpack_require__(33));
+const XMLHttpRequestModule = __importStar(__webpack_require__(34));
 exports.XHR = XMLHttpRequestModule.default || XMLHttpRequestModule;
 function createCookieJar() {
     return new CookieJar();
@@ -3587,7 +3592,7 @@ exports.CookieJar = CookieJar;
 
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -3603,9 +3608,9 @@ exports.CookieJar = CookieJar;
  * @license MIT
  */
 
-var fs = __webpack_require__(34);
-var Url = __webpack_require__(35);
-var spawn = (__webpack_require__(36).spawn);
+var fs = __webpack_require__(35);
+var Url = __webpack_require__(36);
+var spawn = (__webpack_require__(37).spawn);
 
 /**
  * Module exports.
@@ -3635,8 +3640,8 @@ function XMLHttpRequest(opts) {
    * Private variables
    */
   var self = this;
-  var http = __webpack_require__(37);
-  var https = __webpack_require__(38);
+  var http = __webpack_require__(38);
+  var https = __webpack_require__(39);
 
   // Holds http.js objects
   var request;
@@ -4266,42 +4271,42 @@ function XMLHttpRequest(opts) {
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("fs");
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("url");
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("child_process");
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("http");
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("https");
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -4311,12 +4316,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WS = void 0;
-const transport_js_1 = __webpack_require__(12);
-const yeast_js_1 = __webpack_require__(31);
-const util_js_1 = __webpack_require__(18);
-const websocket_constructor_js_1 = __webpack_require__(40);
-const debug_1 = __importDefault(__webpack_require__(20)); // debug()
-const engine_io_parser_1 = __webpack_require__(13);
+const transport_js_1 = __webpack_require__(13);
+const yeast_js_1 = __webpack_require__(32);
+const util_js_1 = __webpack_require__(19);
+const websocket_constructor_js_1 = __webpack_require__(41);
+const debug_1 = __importDefault(__webpack_require__(21)); // debug()
+const engine_io_parser_1 = __webpack_require__(14);
 const debug = (0, debug_1.default)("engine.io-client:websocket"); // debug()
 // detect ReactNative environment
 const isReactNative = typeof navigator !== "undefined" &&
@@ -4470,7 +4475,7 @@ exports.WS = WS;
 
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -4480,7 +4485,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.nextTick = exports.defaultBinaryType = exports.usingBrowserWebSocket = exports.WebSocket = void 0;
-const ws_1 = __importDefault(__webpack_require__(41));
+const ws_1 = __importDefault(__webpack_require__(42));
 exports.WebSocket = ws_1.default;
 exports.usingBrowserWebSocket = false;
 exports.defaultBinaryType = "nodebuffer";
@@ -4488,18 +4493,18 @@ exports.nextTick = process.nextTick;
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const WebSocket = __webpack_require__(42);
+const WebSocket = __webpack_require__(43);
 
-WebSocket.createWebSocketStream = __webpack_require__(58);
-WebSocket.Server = __webpack_require__(59);
-WebSocket.Receiver = __webpack_require__(53);
-WebSocket.Sender = __webpack_require__(55);
+WebSocket.createWebSocketStream = __webpack_require__(59);
+WebSocket.Server = __webpack_require__(60);
+WebSocket.Receiver = __webpack_require__(54);
+WebSocket.Sender = __webpack_require__(56);
 
 WebSocket.WebSocket = WebSocket;
 WebSocket.WebSocketServer = WebSocket.Server;
@@ -4508,7 +4513,7 @@ module.exports = WebSocket;
 
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -4516,18 +4521,18 @@ module.exports = WebSocket;
 
 
 
-const EventEmitter = __webpack_require__(43);
-const https = __webpack_require__(38);
-const http = __webpack_require__(37);
-const net = __webpack_require__(44);
-const tls = __webpack_require__(45);
-const { randomBytes, createHash } = __webpack_require__(46);
-const { Readable } = __webpack_require__(47);
-const { URL } = __webpack_require__(35);
+const EventEmitter = __webpack_require__(44);
+const https = __webpack_require__(39);
+const http = __webpack_require__(38);
+const net = __webpack_require__(45);
+const tls = __webpack_require__(46);
+const { randomBytes, createHash } = __webpack_require__(47);
+const { Readable } = __webpack_require__(48);
+const { URL } = __webpack_require__(36);
 
-const PerMessageDeflate = __webpack_require__(48);
-const Receiver = __webpack_require__(53);
-const Sender = __webpack_require__(55);
+const PerMessageDeflate = __webpack_require__(49);
+const Receiver = __webpack_require__(54);
+const Sender = __webpack_require__(56);
 const {
   BINARY_TYPES,
   EMPTY_BUFFER,
@@ -4537,12 +4542,12 @@ const {
   kStatusCode,
   kWebSocket,
   NOOP
-} = __webpack_require__(51);
+} = __webpack_require__(52);
 const {
   EventTarget: { addEventListener, removeEventListener }
-} = __webpack_require__(56);
-const { format, parse } = __webpack_require__(57);
-const { toBuffer } = __webpack_require__(50);
+} = __webpack_require__(57);
+const { format, parse } = __webpack_require__(58);
+const { toBuffer } = __webpack_require__(51);
 
 const closeTimeout = 30 * 1000;
 const kAborted = Symbol('kAborted');
@@ -5820,52 +5825,52 @@ function socketOnError() {
 
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("events");
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("net");
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("tls");
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("crypto");
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("stream");
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const zlib = __webpack_require__(49);
+const zlib = __webpack_require__(50);
 
-const bufferUtil = __webpack_require__(50);
-const Limiter = __webpack_require__(52);
-const { kStatusCode } = __webpack_require__(51);
+const bufferUtil = __webpack_require__(51);
+const Limiter = __webpack_require__(53);
+const { kStatusCode } = __webpack_require__(52);
 
 const TRAILER = Buffer.from([0x00, 0x00, 0xff, 0xff]);
 const kPerMessageDeflate = Symbol('permessage-deflate');
@@ -6373,20 +6378,20 @@ function inflateOnError(err) {
 
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("zlib");
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const { EMPTY_BUFFER } = __webpack_require__(51);
+const { EMPTY_BUFFER } = __webpack_require__(52);
 
 /**
  * Merges an array of buffers into a new buffer.
@@ -6514,7 +6519,7 @@ if (!process.env.WS_NO_BUFFER_UTIL) {
 
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ ((module) => {
 
 "use strict";
@@ -6533,7 +6538,7 @@ module.exports = {
 
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ ((module) => {
 
 "use strict";
@@ -6595,23 +6600,23 @@ module.exports = Limiter;
 
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const { Writable } = __webpack_require__(47);
+const { Writable } = __webpack_require__(48);
 
-const PerMessageDeflate = __webpack_require__(48);
+const PerMessageDeflate = __webpack_require__(49);
 const {
   BINARY_TYPES,
   EMPTY_BUFFER,
   kStatusCode,
   kWebSocket
-} = __webpack_require__(51);
-const { concat, toArrayBuffer, unmask } = __webpack_require__(50);
-const { isValidStatusCode, isValidUTF8 } = __webpack_require__(54);
+} = __webpack_require__(52);
+const { concat, toArrayBuffer, unmask } = __webpack_require__(51);
+const { isValidStatusCode, isValidUTF8 } = __webpack_require__(55);
 
 const GET_INFO = 0;
 const GET_PAYLOAD_LENGTH_16 = 1;
@@ -7220,7 +7225,7 @@ function error(ErrorCtor, message, prefix, statusCode, errorCode) {
 
 
 /***/ }),
-/* 54 */
+/* 55 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -7352,7 +7357,7 @@ if (!process.env.WS_NO_UTF_8_VALIDATE) {
 
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -7360,14 +7365,14 @@ if (!process.env.WS_NO_UTF_8_VALIDATE) {
 
 
 
-const net = __webpack_require__(44);
-const tls = __webpack_require__(45);
-const { randomFillSync } = __webpack_require__(46);
+const net = __webpack_require__(45);
+const tls = __webpack_require__(46);
+const { randomFillSync } = __webpack_require__(47);
 
-const PerMessageDeflate = __webpack_require__(48);
-const { EMPTY_BUFFER } = __webpack_require__(51);
-const { isValidStatusCode } = __webpack_require__(54);
-const { mask: applyMask, toBuffer } = __webpack_require__(50);
+const PerMessageDeflate = __webpack_require__(49);
+const { EMPTY_BUFFER } = __webpack_require__(52);
+const { isValidStatusCode } = __webpack_require__(55);
+const { mask: applyMask, toBuffer } = __webpack_require__(51);
 
 const kByteLength = Symbol('kByteLength');
 const maskBuffer = Buffer.alloc(4);
@@ -7837,13 +7842,13 @@ module.exports = Sender;
 
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const { kForOnEventAttribute, kListener } = __webpack_require__(51);
+const { kForOnEventAttribute, kListener } = __webpack_require__(52);
 
 const kCode = Symbol('kCode');
 const kData = Symbol('kData');
@@ -8136,13 +8141,13 @@ function callListener(listener, thisArg, event) {
 
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const { tokenChars } = __webpack_require__(54);
+const { tokenChars } = __webpack_require__(55);
 
 /**
  * Adds an offer to the map of extension offers or a parameter to the map of
@@ -8346,13 +8351,13 @@ module.exports = { format, parse };
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const { Duplex } = __webpack_require__(47);
+const { Duplex } = __webpack_require__(48);
 
 /**
  * Emits the `'close'` event on a stream.
@@ -8512,7 +8517,7 @@ module.exports = createWebSocketStream;
 
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -8520,18 +8525,18 @@ module.exports = createWebSocketStream;
 
 
 
-const EventEmitter = __webpack_require__(43);
-const http = __webpack_require__(37);
-const https = __webpack_require__(38);
-const net = __webpack_require__(44);
-const tls = __webpack_require__(45);
-const { createHash } = __webpack_require__(46);
+const EventEmitter = __webpack_require__(44);
+const http = __webpack_require__(38);
+const https = __webpack_require__(39);
+const net = __webpack_require__(45);
+const tls = __webpack_require__(46);
+const { createHash } = __webpack_require__(47);
 
-const extension = __webpack_require__(57);
-const PerMessageDeflate = __webpack_require__(48);
-const subprotocol = __webpack_require__(60);
-const WebSocket = __webpack_require__(42);
-const { GUID, kWebSocket } = __webpack_require__(51);
+const extension = __webpack_require__(58);
+const PerMessageDeflate = __webpack_require__(49);
+const subprotocol = __webpack_require__(61);
+const WebSocket = __webpack_require__(43);
+const { GUID, kWebSocket } = __webpack_require__(52);
 
 const keyRegex = /^[+/0-9A-Za-z]{22}==$/;
 
@@ -9054,13 +9059,13 @@ function abortHandshakeOrEmitwsClientError(server, req, socket, code, message) {
 
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const { tokenChars } = __webpack_require__(54);
+const { tokenChars } = __webpack_require__(55);
 
 /**
  * Parses the `Sec-WebSocket-Protocol` header into a set of subprotocol names.
@@ -9123,7 +9128,7 @@ module.exports = { parse };
 
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -9133,10 +9138,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WT = void 0;
-const transport_js_1 = __webpack_require__(12);
-const websocket_constructor_js_1 = __webpack_require__(40);
-const engine_io_parser_1 = __webpack_require__(13);
-const debug_1 = __importDefault(__webpack_require__(20)); // debug()
+const transport_js_1 = __webpack_require__(13);
+const websocket_constructor_js_1 = __webpack_require__(41);
+const engine_io_parser_1 = __webpack_require__(14);
+const debug_1 = __importDefault(__webpack_require__(21)); // debug()
 const debug = (0, debug_1.default)("engine.io-client:webtransport"); // debug()
 class WT extends transport_js_1.Transport {
     get name() {
@@ -9215,7 +9220,7 @@ exports.WT = WT;
 
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -9287,7 +9292,7 @@ function queryKey(uri, query) {
 
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -9316,13 +9321,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Manager = void 0;
-const engine_io_client_1 = __webpack_require__(8);
-const socket_js_1 = __webpack_require__(64);
-const parser = __importStar(__webpack_require__(65));
-const on_js_1 = __webpack_require__(68);
-const backo2_js_1 = __webpack_require__(69);
-const component_emitter_1 = __webpack_require__(17);
-const debug_1 = __importDefault(__webpack_require__(20)); // debug()
+const engine_io_client_1 = __webpack_require__(9);
+const socket_js_1 = __webpack_require__(65);
+const parser = __importStar(__webpack_require__(66));
+const on_js_1 = __webpack_require__(69);
+const backo2_js_1 = __webpack_require__(70);
+const component_emitter_1 = __webpack_require__(18);
+const debug_1 = __importDefault(__webpack_require__(21)); // debug()
 const debug = debug_1.default("socket.io-client:manager"); // debug()
 class Manager extends component_emitter_1.Emitter {
     constructor(uri, opts) {
@@ -9697,7 +9702,7 @@ exports.Manager = Manager;
 
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -9707,10 +9712,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Socket = void 0;
-const socket_io_parser_1 = __webpack_require__(65);
-const on_js_1 = __webpack_require__(68);
-const component_emitter_1 = __webpack_require__(17);
-const debug_1 = __importDefault(__webpack_require__(20)); // debug()
+const socket_io_parser_1 = __webpack_require__(66);
+const on_js_1 = __webpack_require__(69);
+const component_emitter_1 = __webpack_require__(18);
+const debug_1 = __importDefault(__webpack_require__(21)); // debug()
 const debug = debug_1.default("socket.io-client:socket"); // debug()
 /**
  * Internal events.
@@ -10570,17 +10575,17 @@ exports.Socket = Socket;
 
 
 /***/ }),
-/* 65 */
+/* 66 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Decoder = exports.Encoder = exports.PacketType = exports.protocol = void 0;
-const component_emitter_1 = __webpack_require__(17);
-const binary_js_1 = __webpack_require__(66);
-const is_binary_js_1 = __webpack_require__(67);
-const debug_1 = __webpack_require__(20); // debug()
+const component_emitter_1 = __webpack_require__(18);
+const binary_js_1 = __webpack_require__(67);
+const is_binary_js_1 = __webpack_require__(68);
+const debug_1 = __webpack_require__(21); // debug()
 const debug = (0, debug_1.default)("socket.io-parser"); // debug()
 /**
  * These strings must not be used as event names, as they have a special meaning.
@@ -10898,14 +10903,14 @@ class BinaryReconstructor {
 
 
 /***/ }),
-/* 66 */
+/* 67 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.reconstructPacket = exports.deconstructPacket = void 0;
-const is_binary_js_1 = __webpack_require__(67);
+const is_binary_js_1 = __webpack_require__(68);
 /**
  * Replaces every Buffer | ArrayBuffer | Blob | File in packet with a numbered placeholder.
  *
@@ -10993,7 +10998,7 @@ function _reconstructPacket(data, buffers) {
 
 
 /***/ }),
-/* 67 */
+/* 68 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -11055,7 +11060,7 @@ exports.hasBinary = hasBinary;
 
 
 /***/ }),
-/* 68 */
+/* 69 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -11072,7 +11077,7 @@ exports.on = on;
 
 
 /***/ }),
-/* 69 */
+/* 70 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -11148,13 +11153,6 @@ Backoff.prototype.setJitter = function (jitter) {
 };
 
 
-/***/ }),
-/* 70 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("path");
-
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -11223,7 +11221,7 @@ exports.deactivate = exports.activate = void 0;
 const FileDecorationProvider_1 = __webpack_require__(1);
 const SidebarProvider_1 = __webpack_require__(3);
 const constants_1 = __webpack_require__(4);
-const socket_io_client_1 = __webpack_require__(6);
+const socket_io_client_1 = __webpack_require__(7);
 const vscode = __webpack_require__(2);
 // This method is called when your extension is activated.
 // Currently this is activated as soon as user open VSCode
@@ -11232,10 +11230,12 @@ function activate(context) {
     const config = vscode.workspace.getConfiguration("files");
     config.update("autoSave", "afterDelay", true);
     config.update("autoSaveDelay", 100, true);
+    const workspace = vscode.workspace.workspaceFolders?.[0];
+    const sessionId = workspace?.name || "";
     // Initialize variables
     const socket = (0, socket_io_client_1.io)(constants_1.SOCKET_URL);
     // Sidebar
-    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, context.globalState, socket);
+    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, sessionId, socket);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider("hatchways-sidebar", sidebarProvider));
     // Walkthrough Screen
     context.subscriptions.push(vscode.commands.registerCommand("hatchways-live-interviewing.welcome", () => {
@@ -11244,27 +11244,23 @@ function activate(context) {
     // Automatically open Live Interview + Sidebar
     vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
     vscode.commands.executeCommand("hatchways-sidebar.focus");
-    // Update all users state
-    socket.on(constants_1.ALL_USERS, (value, callback) => {
-        updateUserState(value, context);
-    });
-    // When user joined
-    socket.on(constants_1.USER_JOIN, (message) => {
+    // When user submitted their name to the interivew
+    socket.on(constants_1.USER_READY, (message) => {
         vscode.window.showInformationMessage(message);
     });
-    // Whe user left
-    socket.on(constants_1.USER_LEAVE, (message) => {
+    // When user left
+    socket.on(constants_1.DISCONNECT, (message) => {
         vscode.window.showInformationMessage(message);
     });
     // When user open a file
     let disposableCurrFileDecorationProviders = [];
-    socket.on(constants_1.USER_CLICK_ON_FILE, (value, callback) => {
-        updateUserState(value, context);
+    socket.on(constants_1.FILE_CLICK, (value) => {
+        console.log("file click????", value);
         for (const d of disposableCurrFileDecorationProviders) {
             d.dispose();
         }
-        disposableCurrFileDecorationProviders = [];
         // For each online user, register a FileDecorationProvider
+        disposableCurrFileDecorationProviders = [];
         for (const userId in value["allOnlineUsers"]) {
             const currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(socket, value, userId);
             disposableCurrFileDecorationProviders.push(currFileDecorationProvider);
@@ -11272,8 +11268,7 @@ function activate(context) {
     });
     // When user click on a line
     let disposableCursorDecorations = {};
-    socket.on(constants_1.USER_CURSOR_MOVE, (value) => {
-        updateUserState(value, context);
+    socket.on(constants_1.CURSOR_MOVE, (value) => {
         const userPerformingThisAction = value["userPerformingThisAction"];
         if (userPerformingThisAction === socket.id) {
             return;
@@ -11310,15 +11305,15 @@ function activate(context) {
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         const doc = editor?.document;
         if (doc?.uri) {
-            socket.emit(constants_1.USER_CLICK_ON_FILE, doc?.uri);
+            socket.emit(constants_1.FILE_CLICK, { sessionId, fileUri: doc?.uri });
         }
     }));
     if (vscode.window.activeTextEditor) {
         context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection((event) => {
             // Send new cursor position
             if (event.textEditor === vscode.window.activeTextEditor) {
-                // socket.emit(USER_CLICK_ON_FILE, event.textEditor.document.uri);
-                socket.emit(constants_1.USER_CURSOR_MOVE, {
+                socket.emit(constants_1.CURSOR_MOVE, {
+                    sessionId,
                     selections: event.selections,
                     socketId: socket.id,
                     filePath: event.textEditor.document.uri.path,
@@ -11331,10 +11326,6 @@ exports.activate = activate;
 // This method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
-function updateUserState(value, context) {
-    const allOnlineUsers = value["allOnlineUsers"];
-    context.globalState.update(constants_1.ALL_USERS, allOnlineUsers);
-}
 
 })();
 
