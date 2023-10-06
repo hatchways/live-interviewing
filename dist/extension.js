@@ -137,7 +137,6 @@ class SidebarProvider {
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.js"));
         // Use a nonce to only allow a specific script to be run.
         const nonce = (0, getNonce_1.getNonce)();
-        // const globalName = this._globalState.get(CURRENT_USER);
         return `<!DOCTYPE html>
     <html lang="en">
        <head>
@@ -153,6 +152,7 @@ class SidebarProvider {
           <link href="${mainStyleUri}" rel="stylesheet">
           <script nonce="${nonce}">
           const tsvscode = acquireVsCodeApi();
+          const globalName = "Minh"
           </script>
        </head>
        <body>

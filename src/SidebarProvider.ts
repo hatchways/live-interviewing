@@ -80,7 +80,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     );
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
-    // const globalName = this._globalState.get(CURRENT_USER);
+    
 
     return `<!DOCTYPE html>
     <html lang="en">
@@ -97,6 +97,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           <link href="${mainStyleUri}" rel="stylesheet">
           <script nonce="${nonce}">
           const tsvscode = acquireVsCodeApi();
+          const globalName = "Minh"
           </script>
        </head>
        <body>
