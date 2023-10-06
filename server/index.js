@@ -23,13 +23,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("user_click_on_file", (fileUri) => {
+    removeUserFromFiles(socket);
     users[socket.id]["filePosition"] = fileUri;
 
     if (!fileUri || fileUri?.fsPath === undefined){
       return;
     }
-
-    removeUserFromFiles(socket);
 
     if (fileUri.fsPath in files && files[fileUri.fsPath]?.users){
       files[fileUri.fsPath]["users"].push(socket.id);
@@ -49,7 +48,7 @@ io.on("connection", (socket) => {
 
   socket.on("user_cursor_move", (data) => {
     users[socket.id]['cursorPosition'] = data;
-    socket.broadcast.emit("user_cursor_move", {
+    io.emit("user_cursor_move", {
         allOnlineUsers: users,
         newCursorPosition: data,
         userPerformingThisAction: socket.id
@@ -77,11 +76,13 @@ server.listen(4000, () => {
 const removeUserFromFiles = (socket) => {
     // Remove from previous file
     const previousFileClicked = users[socket.id]["filePosition"];
+    console.log("previous file clciked");
     const usersInPreviousFile = previousFileClicked.fsPath in files ? files[previousFileClicked.fsPath]["users"] : [];
     const index = usersInPreviousFile.findIndex(id => id === socket.id);
     if (index > -1){
       usersInPreviousFile.splice(index, 1);
-    }    
+      console.log("remove user from file", socket.id, "file", previousFileClicked.fsPath)
+    }
 }
 
 function random_rgba() {

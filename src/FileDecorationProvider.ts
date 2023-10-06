@@ -37,6 +37,7 @@ export class FileDecorationProvider
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     let result: vscode.FileDecoration | undefined = undefined;
     const files = this.socketFileEventValue?.files;
+    const allOnlineUsers = this.socketFileEventValue?.allOnlineUsers;
     const users = files[uri.fsPath]["users"];
     
     // User is not on the file
@@ -51,7 +52,7 @@ export class FileDecorationProvider
     const activeEditor = vscode.window.activeTextEditor;
     const pathBeingViewed = activeEditor ? activeEditor.document.uri.path : null;
 
-    let badge = this.userOnFile;
+    let badge = this.userOnFile ? allOnlineUsers?.[this.userOnFile]?.name : "";
     
     if (doc != undefined && !doc.isUntitled) {
       if (this.userOnFile === this.socket.id){
