@@ -10,7 +10,7 @@ export class FileDecorationProvider
  
   socket: Socket;
   socketFileEventValue: any;
-  badge: string | undefined;
+  badge: any;
   userSocketId: string;
 
   emitter = new vscode.EventEmitter<vscode.Uri>();
@@ -30,7 +30,12 @@ export class FileDecorationProvider
     for (const file in files){
       // @ts-ignore
       const uri = file["uri"];
-      this.emitter.fire(uri);
+      if (this.userSocketId in file["users"]){
+        this.emitter.fire(uri);
+      }
+      if (file["users"]?.length === 0){
+        this.emitter.fire(uri);
+      }
     }
     this.badge = value["allOnlineUsers"][this.userSocketId]?.name;
     // this.badge = "Anonymous"

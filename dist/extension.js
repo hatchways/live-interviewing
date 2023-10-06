@@ -25,7 +25,12 @@ class FileDecorationProvider {
         for (const file in files) {
             // @ts-ignore
             const uri = file["uri"];
-            this.emitter.fire(uri);
+            if (this.userSocketId in file["users"]) {
+                this.emitter.fire(uri);
+            }
+            if (file["users"]?.length === 0) {
+                this.emitter.fire(uri);
+            }
         }
         this.badge = value["allOnlineUsers"][this.userSocketId]?.name;
         // this.badge = "Anonymous"
@@ -11233,23 +11238,14 @@ function activate(context) {
     // let currFileDecorationProvider = null;
     socket.on(constants_1.USER_CLICK_ON_FILE, (value, callback) => {
         updateUserState(value, context);
-        // if (currFileDecorationProvider){
-        //   currFileDecorationProvider.dispose();
-        // }
         for (const d of disposableCurrFileDecorationProvider) {
             d.dispose();
         }
-        for (const user in value["allOnlineUsers"]) {
-            // console.log("user", user);
-            const currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(context.globalState, socket, user);
-            currFileDecorationProvider.setValue(value);
-            disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
-        }
-        // currFileDecorationProvider = new FileDecorationProvider(
-        //   context.globalState,
-        //   socket,
-        // );
-        // currFileDecorationProvider.setValue(value);
+        // for (const user in value["allOnlineUsers"]){
+        const currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(context.globalState, socket);
+        currFileDecorationProvider.setValue(value);
+        disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
+        // }
     });
     // When user click on a line
     socket.on(constants_1.USER_CURSOR_MOVE, (value) => {
