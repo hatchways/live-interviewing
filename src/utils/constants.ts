@@ -1,5 +1,5 @@
 // Socket events
-export const USER_READY = "userReady"
+export const USER_READY = "userReady";
 export const JOIN_SESSION = "joinSession";
 export const FILE_CLICK = "fileClick";
 export const CURSOR_MOVE = "cursorMove";

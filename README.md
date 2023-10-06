@@ -1,15 +1,26 @@
-## To run
+## To debug
 
 ```
 npm install
 
 npm run watch
+
+node server/index.js -- To run the socket server locally on http://localhost:4000
 ```
 
 Then open the project in Visual Studio Code.
 Go to `extension.ts` then press F5.
 
-## Commands
+## To install as an extension
 
-Open Command Palette (on MacOS, it would be Cmd + Shift + P)
-Then choose Hatchways:Welcome to see the Hatchways Welcome page
+```
+npm install -g @vscode/vsce
+
+cd live-interviewing
+
+vsce package
+```
+
+You should see a file titled `hatchways-live-interviewing-0.0.1.vsix` being generated.
+
+Go to Visual Studio Code, click on Extensions. Click on the three dots "..." on the topmost right corner > Install from VSIX... > Select hatchways-live-interviewing-0.0.1.vsix

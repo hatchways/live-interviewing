@@ -1,4 +1,4 @@
-import { JOIN_SESSION } from "./utils/constants";
+import { JOIN_SESSION, USER_READY } from "./utils/constants";
 import { getNonce } from "./utils/getNonce";
 import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
@@ -33,7 +33,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           if (!data.value) {
             return;
           }
-          this._socket.emit(JOIN_SESSION, {sessionId: this._sessionId, userName: data.value});
+          this._socket.emit(USER_READY, {
+            sessionId: this._sessionId,
+            userName: data.value,
+          });
           if (vscode.workspace.workspaceFolders) {
             const workspace = vscode.workspace.workspaceFolders?.[0];
             // Todo: fetch from our API ? what file to open as the initial starting point
@@ -80,7 +83,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     );
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
-    
 
     return `<!DOCTYPE html>
     <html lang="en">

@@ -17,13 +17,20 @@ io.on("connection", (socket) => {
     color: random_rgba(),
   };
 
-  socket.on("joinSession", async ({sessionId, userName}) => {
+  socket.on("joinSession", async (sessionId) => {
     await socket.join(sessionId);
-    console.log(`Socket ${socket.id} with name ${userName} joined room ${sessionId}`);
-    socket.to(sessionId).emit("userReady", `${userName} has joined the interview.`);
+    console.log(`Socket ${socket.id} joined room ${sessionId}`);
   });
 
-  socket.on("fileClick", ({sessionId, fileUri}) => {
+  socket.on("userReady", async ({ sessionId, userName }) => {
+    users[socket.id]["name"] = userName;
+    console.log(`Socket ${socket.id} entered interview with name ${userName}`);
+    socket
+      .to(sessionId)
+      .emit("userReady", `${userName} has joined the interview.`);
+  });
+
+  socket.on("fileClick", ({ sessionId, fileUri }) => {
     removeUserFromFiles(socket);
     users[socket.id]["filePosition"] = fileUri;
 
@@ -37,26 +44,23 @@ io.on("connection", (socket) => {
       files[fileUri.fsPath] = { uri: fileUri, users: [socket.id] };
     }
 
-    io.sockets.in(socket.room).emit("fileClick", {
+    io.sockets.in(sessionId).emit("fileClick", {
       allOnlineUsers: users,
       newFileClicked: fileUri,
       userPerformingThisAction: socket.id,
       files,
     });
 
-    console.log(`Socket ${socket.id} of room ${sessionId} clicked on file ${fileUri.fsPath}`);
+    console.log(
+      `Socket ${socket.id} of room ${sessionId} clicked on file ${fileUri.fsPath}`
+    );
   });
 
-  socket.on("cursorMove", ({
-    sessionId,
-    selections,
-    socketId,
-    filePath
-  }) => {
-    users[socket.id]["cursorPosition"] = { selections, socketId, filePath }
+  socket.on("cursorMove", ({ sessionId, cursorPosition }) => {
+    users[socket.id]["cursorPosition"] = cursorPosition;
     socket.to(sessionId).emit("cursorMove", {
       allOnlineUsers: users,
-      newCursorPosition: users[socket.id]["cursorPosition"],
+      cursorPosition,
       userPerformingThisAction: socket.id,
     });
 
@@ -66,11 +70,13 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (sessionId) => {
     removeUserFromFiles(socket);
     const userName = users[socket.id]?.name;
-    socket.to(sessionId).emit("userLeave", `${userName} has left the interview.`);
+    socket
+      .to(sessionId)
+      .emit("userLeave", `${userName} has left the interview.`);
 
     delete users[socket.id];
 
-    socket.leave(sessionId)
+    socket.leave(sessionId);
     console.log(`Socket ${socket.id} of room ${sessionId} left`);
   });
 });
