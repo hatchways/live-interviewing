@@ -69,20 +69,26 @@ export function activate(context: vscode.ExtensionContext) {
 
   // When user open a file
   let disposableCurrFileDecorationProvider: any = [];
-  // let currFileDecorationProvider = null;
+  let currFileDecorationProvider: any = null;
   socket.on(USER_CLICK_ON_FILE, (value, callback) => {
     updateUserState(value, context);
-    for (const d of disposableCurrFileDecorationProvider){
-      d.dispose()
+
+    if (currFileDecorationProvider){
+      currFileDecorationProvider.dispose();
     }
+    
+    // for (const d of disposableCurrFileDecorationProvider){
+    //   d.dispose()
+    // }
     // for (const user in value["allOnlineUsers"]){
-    const currFileDecorationProvider = new FileDecorationProvider(
+    currFileDecorationProvider = new FileDecorationProvider(
       context.globalState,
       socket,
-      // user
+      value
     );
-    currFileDecorationProvider.setValue(value);
-    disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
+    
+    // disposableCurrFileDecorationProvider.push(currFileDecorationProvider);
+
     // }
   });
 
