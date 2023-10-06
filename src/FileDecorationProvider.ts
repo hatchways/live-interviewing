@@ -1,14 +1,13 @@
+import { Map } from "./types/FileDecorationProviderTypes";
 import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
-import { Map } from "./types/FileDecorationProviderTypes";
-
 
 export class FileDecorationProvider
   implements vscode.Disposable, vscode.FileDecorationProvider
 {
   onDidChangeFileDecorations: vscode.Event<vscode.Uri>;
-  disposable: vscode.Disposable;  
- 
+  disposable: vscode.Disposable;
+
   socket: Socket;
   socketFileEventValue: Map;
   userOnFile: string | undefined;
@@ -28,7 +27,7 @@ export class FileDecorationProvider
      */
     this.socketFileEventValue = value;
     const files = this.socketFileEventValue?.files;
-    for (const filePath in files){
+    for (const filePath in files) {
       const uri = files[filePath]["uri"];
       this.emitter.fire(uri);
     }
@@ -39,9 +38,9 @@ export class FileDecorationProvider
     const files = this.socketFileEventValue?.files;
     const allOnlineUsers = this.socketFileEventValue?.allOnlineUsers;
     const users = files[uri.fsPath]["users"];
-    
+
     // User is not on the file
-    if (this.userOnFile && !(users.includes(this.userOnFile))){
+    if (this.userOnFile && !users.includes(this.userOnFile)) {
       return result;
     }
 
@@ -50,18 +49,25 @@ export class FileDecorationProvider
       (d) => d.uri.toString() == uri.toString()
     );
     const activeEditor = vscode.window.activeTextEditor;
-    const pathBeingViewed = activeEditor ? activeEditor.document.uri.path : null;
+    const pathBeingViewed = activeEditor
+      ? activeEditor.document.uri.path
+      : null;
 
     let badge = this.userOnFile ? allOnlineUsers?.[this.userOnFile]?.name : "";
-    
-    if (doc != undefined && !doc.isUntitled) {
-      if (this.userOnFile === this.socket.id){
 
-        if (pathBeingViewed === doc.fileName){
-          result = new vscode.FileDecoration(badge?.[0], `${badge} is on this file`);
+    if (doc != undefined && !doc.isUntitled) {
+      if (this.userOnFile === this.socket.id) {
+        if (pathBeingViewed === doc.fileName) {
+          result = new vscode.FileDecoration(
+            badge?.[0],
+            `${badge} is on this file`
+          );
         }
       } else {
-        result = new vscode.FileDecoration(badge?.[0], `${badge} is on this file`);
+        result = new vscode.FileDecoration(
+          badge?.[0],
+          `${badge} is on this file`
+        );
       }
     }
     return result;

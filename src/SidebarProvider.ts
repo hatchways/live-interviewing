@@ -3,6 +3,8 @@ import { getNonce } from "./utils/getNonce";
 import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
 
+import path = require("path");
+
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
   _doc?: vscode.TextDocument;
@@ -32,6 +34,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             return;
           }
           this._socket.emit(USER_JOIN, data.value);
+          if (vscode.workspace.workspaceFolders) {
+            const workspace = vscode.workspace.workspaceFolders?.[0];
+            // Todo: fetch from our API ? what file to open as the initial starting point
+            const filePath = path.join(workspace.uri?.fsPath, "a1.txt");
+            const openPath = vscode.Uri.file(filePath);
+            vscode.workspace.openTextDocument(openPath).then((doc) => {
+              vscode.window.showTextDocument(doc);
+            });
+            vscode.commands.executeCommand(
+              "workbench.files.action.showActiveFileInExplorer"
+            );
+          }
+
           break;
         }
         case "onError": {
