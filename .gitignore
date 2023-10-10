@@ -1,3 +1,5 @@
 .idea
 .DS_Store
+.wget-hsts
 node_modules
+out/*

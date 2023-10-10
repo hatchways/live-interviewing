@@ -1,7 +1,8 @@
 {
   "name": "hatchways-live-interviewing",
   "publisher": "hatchways",
-  "displayName": "hatchways-live-interviewing",
+  "displayName": "Hatchways Live Interviewing",
+  "icon": "media/hatchways_blue_icon.png",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -52,7 +53,7 @@
       {
         "id": "walkthrough",
         "title": "Get Started with Hatchways",
-        "description": "Your first steps to setup Hatchways live coding interview",
+        "description": "Your first steps to setup a Hatchways live coding session",
         "steps": [
           {
             "id": "inputName",

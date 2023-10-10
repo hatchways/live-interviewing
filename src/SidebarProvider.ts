@@ -1,4 +1,4 @@
-import { JOIN_SESSION, USER_READY } from "./utils/constants";
+import { USER_READY } from "./utils/constants";
 import { getNonce } from "./utils/getNonce";
 import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
