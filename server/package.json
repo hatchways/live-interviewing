@@ -1,7 +1,7 @@
 {
-  "name": "socket-chat-example",
+  "name": "socket",
   "version": "0.0.1",
-  "description": "my first socket.io app",
+  "description": "Hatchways Live Interviewing Socket App",
   "dependencies": {
     "@types/express": "^4.17.18",
     "@types/socket.io": "^3.0.2",
