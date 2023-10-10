@@ -52,7 +52,7 @@ class SidebarProvider {
                     if (!data.value) {
                         return;
                     }
-                    vscode.window.showInformationMessage(`Hi ${data.value}, welcome to the live coding session!`);
+                    vscode.window.showInformationMessage(`Hi ${data.value}, welcome to the interview!`);
                     break;
                 }
                 case "onError": {
