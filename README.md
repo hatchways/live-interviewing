@@ -9,6 +9,7 @@ npm run watch
 
 node server/index.js
 ```
+
 Then open the project in Visual Studio Code.
 Go to `extension.ts` then press F5.
 
