@@ -3,13 +3,37 @@
 /******/ 	var __webpack_modules__ = ([
 /* 0 */,
 /* 1 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getNonce = void 0;
+function getNonce() {
+    let text = "";
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
+exports.getNonce = getNonce;
+
+
+/***/ }),
+/* 2 */
+/***/ ((module) => {
+
+module.exports = require("vscode");
+
+/***/ }),
+/* 3 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SidebarProvider = void 0;
-const getNonce_1 = __webpack_require__(2);
-const vscode = __webpack_require__(3);
+const getNonce_1 = __webpack_require__(1);
+const vscode = __webpack_require__(2);
 class SidebarProvider {
     constructor(_extensionUri) {
         this._extensionUri = _extensionUri;
@@ -28,7 +52,7 @@ class SidebarProvider {
                     if (!data.value) {
                         return;
                     }
-                    vscode.window.showInformationMessage(`Hi ${data.value}, welcome to the interview!`);
+                    vscode.window.showInformationMessage(`Hi ${data.value}, welcome to the live coding session!`);
                     break;
                 }
                 case "onError": {
@@ -80,30 +104,6 @@ class SidebarProvider {
 exports.SidebarProvider = SidebarProvider;
 
 
-/***/ }),
-/* 2 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getNonce = void 0;
-function getNonce() {
-    let text = "";
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-}
-exports.getNonce = getNonce;
-
-
-/***/ }),
-/* 3 */
-/***/ ((module) => {
-
-module.exports = require("vscode");
-
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -139,8 +139,8 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deactivate = exports.activate = void 0;
-const SidebarProvider_1 = __webpack_require__(1);
-const vscode = __webpack_require__(3);
+const SidebarProvider_1 = __webpack_require__(3);
+const vscode = __webpack_require__(2);
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {

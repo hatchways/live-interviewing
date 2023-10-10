@@ -10,7 +10,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -50,25 +52,38 @@
             "id": "inputName",
             "title": "Input your name",
             "description": "Click on the Hatchways icon on the Activity Bar to enter your name\n[Open Settings](command:hatchways-sidebar.focus)",
-            "media": { "image": "media/coding.png", "altText": "Input Your Name" },
-            "completionEvents": ["onCommand:hatchways-sidebar.focus"]
+            "media": {
+              "image": "media/coding.png",
+              "altText": "Input Your Name"
+            },
+            "completionEvents": [
+              "onCommand:hatchways-sidebar.focus"
+            ]
           },
           {
             "id": "changeSetting",
             "title": "Change Setting",
             "description": "This step will change a setting and check off when the setting has changed\n[Change Setting](command:getting-started-sample.changeSetting)",
-            "media": { "image": "media/coding.png", "altText": "Change Settings" },
-            "completionEvents": ["onSettingChanged:getting-started-sample.sampleSetting"]
+            "media": {
+              "image": "media/coding.png",
+              "altText": "Change Settings"
+            },
+            "completionEvents": [
+              "onSettingChanged:getting-started-sample.sampleSetting"
+            ]
           },
           {
-						"id": "openTerminal",
-						"title": "Open Terminal",
-						"description": "Click [here](command:workbench.action.terminal.toggleTerminal) to open terminal. This step will complete once the terminal has been opened.",
-						"completionEvents": [
-							"onView:terminal"
-						],
-            "media": { "image": "media/coding.png", "altText": "Change Settings" }
-					}
+            "id": "openTerminal",
+            "title": "Open Terminal",
+            "description": "Click [here](command:workbench.action.terminal.toggleTerminal) to open terminal. This step will complete once the terminal has been opened.",
+            "completionEvents": [
+              "onView:terminal"
+            ],
+            "media": {
+              "image": "media/coding.png",
+              "altText": "Change Settings"
+            }
+          }
         ]
       }
     ]

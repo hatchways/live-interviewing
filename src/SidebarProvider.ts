@@ -1,7 +1,5 @@
 import { getNonce } from "./getNonce";
 import * as vscode from "vscode";
-import acquire
-
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
@@ -27,7 +25,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           if (!data.value) {
             return;
           }
-          vscode.window.showInformationMessage(`Hi ${data.value}, welcome to the interview!`);
+          vscode.window.showInformationMessage(
+            `Hi ${data.value}, welcome to the interview!`
+          );
           break;
         }
         case "onError": {
@@ -54,14 +54,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     );
     // Custom JS and CSS
     const mainStyleUri = webview.asWebviewUri(
-        vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.css")
-      );
-      const scriptUri = webview.asWebviewUri(
-        vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.js")
-      );
+      vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.css")
+    );
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "out/compiled", "Sidebar.js")
+    );
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
-
 
     return `<!DOCTYPE html>
     <html lang="en">
