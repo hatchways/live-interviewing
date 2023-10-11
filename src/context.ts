@@ -94,15 +94,17 @@ export function filesManager (context: any) {
         const files = getFiles();
         const copy = makeDeepCopy(files);
 
-        const filePath = fileUri.fsPath;
+        if (!fileUri || !(fileUri?.fsPath)){
+            return;
+        }
 
-        if (filePath in files && files[filePath].includes(userId)){
+        const filePath = fileUri?.fsPath;
+        if (filePath in files && files[filePath]?.includes(userId)){
             const index = files[filePath].findIndex((x: string) => x === userId);
             if (index !== -1){
                 copy[filePath].splice(index, 1);
             }
         }
-
         await setFiles(copy);
     }
 }
