@@ -8,22 +8,24 @@ export class FileDecorationProvider
   socket: Socket;
   userOnFile: string | undefined;
   previousUri: vscode.Uri;
-  onlineUsers: Map;
+  name: string | undefined;
 
   disposable: vscode.Disposable; 
   onDidChangeFileDecorations: vscode.Event<vscode.Uri>;
   emitter = new vscode.EventEmitter<vscode.Uri>();
 
-  public constructor(socket: Socket, userId: string, currentUri: vscode.Uri, previousUri: vscode.Uri, onlineUsers: Map) {
+  public constructor(socket: Socket, userId: string, currentUri: vscode.Uri, previousUri: vscode.Uri, name: string) {
     this.socket = socket;
     this.userOnFile = userId;
-    this.onlineUsers = onlineUsers;
+    this.name = name;
 
     this.onDidChangeFileDecorations = this.emitter.event;
     this.disposable = vscode.window.registerFileDecorationProvider(this);
-;   
-    this.emitter.fire(currentUri)
     this.previousUri = previousUri;
+
+    console.log(`constructor is called for ${currentUri.fsPath}`)
+    this.emitter.fire(currentUri)
+   
     if (previousUri && previousUri?.fsPath){
       this.emitter.fire(previousUri)
     } else {
@@ -87,10 +89,12 @@ export class FileDecorationProvider
     let result: vscode.FileDecoration | undefined = undefined;
   
     // User is not on the file
-    if (uri.fsPath === this.previousUri.fsPath) {
+    if (this.previousUri && uri.fsPath === this.previousUri.fsPath) {
       console.log("user not in file", this.previousUri.fsPath);
       return result;
     }
+
+    console.log(`attempting to find doc for ${uri.fsPath}`)
 
     // Assign decorator to the current file the user are clicking on
     const doc = vscode.workspace.textDocuments.find(
@@ -100,17 +104,16 @@ export class FileDecorationProvider
     // const pathBeingViewed = activeEditor
     //   ? activeEditor.document.uri.path
     //   : null;
-
-    let badge = this.userOnFile ? this.onlineUsers[this.userOnFile]?.name : "";
-
-    console.log("badge", badge);
-
+    
     if (doc != undefined && !doc.isUntitled) {
+      console.log(`setting file for ${uri.fsPath} with name ${this.name}`)
       result = new vscode.FileDecoration(
-          badge?.[0],
-          `${badge} is on this file`
+          this.name?.[0],
+          `${this.name} is on this file`
         );
      return result;
+    } else {
+      console.log(`no doc found for ${uri.fsPath}`)
     }
   }
 

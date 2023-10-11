@@ -73,37 +73,42 @@ export function activate(context: vscode.ExtensionContext) {
       const myData = onlineUsers[socket.id];
       const { name, currentPosition, filePosition } = myData
       socket.emit(CURRENT_POSITION, { sessionId, name, currentPosition, fileUri: filePosition})
-    } else {
-      vscode.window.showInformationMessage(`No information found for currentPosition ${socket.id}`);
     }
     await setUser(id, {name, color}); 
   });
 
   // When current user received other user's data
-  
   socket.on(CURRENT_POSITION, async ({ id, name, fileUri, cursorPosition }) => {
+    console.log('current position is called');
     const onlineUsers = get();
     if (!(id in onlineUsers)){
       vscode.window.showInformationMessage(`${name} has joined the coding interview session at ${fileUri.fsPath}.`);
       await setUser(id, {filePosition: fileUri, cursorPosition, name}); 
       await setFile(id, fileUri);
+      modifyFileDecorator(id, fileUri, null);
     }
-
-    modifyFileDecorator(id, fileUri);
     vscode.window.showInformationMessage(`Set file position for ${name}`);
   });
 
 
   // When user open a file
   socket.on(FILE_CLICK, async ({id, fileUri}) => {
+    console.log('file click is called???')
     const onlineUsers = get();
-    const previousUri = id in onlineUsers ? onlineUsers[id]?.filePosition : null;
+
+    if (!(id in onlineUsers)){
+      return;
+    }
+  
+    const previousUri = onlineUsers[id]?.filePosition;
     if (previousUri && previousUri?.fsPath){
       vscode.window.showInformationMessage(`Previous file ${previousUri.fsPath} removed for ${onlineUsers[id]?.name}`);
       await removeUserFromFile(id, previousUri);
     }
+    await setUser(id, {filePosition: fileUri}); 
+    await setFile(id, fileUri);
 
-    modifyFileDecorator(id, fileUri);
+    modifyFileDecorator(id, fileUri, previousUri);
   });
 
   // When user click on a line
@@ -197,10 +202,10 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // Function to modify file decoration
-  const modifyFileDecorator = async (id: string, fileUri: vscode.Uri) => {
+  const modifyFileDecorator = async (id: string, fileUri: vscode.Uri, previousUri: vscode.Uri | null) => {
+    console.log(`calling modifyDecorator for ${id} and ${fileUri.fsPath}`)
     const onlineUsers = get();
-    const previousUri = id in onlineUsers ? onlineUsers[id]?.filePosition : null;
-   
+  
     if (id in disposableCurrFileDecorationProviders){
       disposableCurrFileDecorationProviders[id].dispose();
     }
@@ -209,8 +214,9 @@ export function activate(context: vscode.ExtensionContext) {
       socket,
       id,
       fileUri,
+      // @ts-ignore
       previousUri,
-      onlineUsers
+      onlineUsers?.[id]?.name
     );
   
     disposableCurrFileDecorationProviders[id] = currFileDecorationProvider;
