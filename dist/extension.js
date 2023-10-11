@@ -75,9 +75,9 @@ exports.SidebarProvider = void 0;
 const context_1 = __webpack_require__(7);
 const constants_1 = __webpack_require__(4);
 const getNonce_1 = __webpack_require__(5);
+const child_process_1 = __webpack_require__(39);
 const vscode = __webpack_require__(2);
 const path = __webpack_require__(6);
-const child_process_1 = __webpack_require__(39);
 class SidebarProvider {
     constructor(_extensionUri, _sessionId, _socket, _context) {
         this._extensionUri = _extensionUri;
@@ -121,7 +121,7 @@ class SidebarProvider {
                         let currentWorkspacePath = workspace.uri.fsPath;
                         console.log(currentWorkspacePath);
                         // Now, run npm install in that folder
-                        (0, child_process_1.exec)('npm install', { cwd: currentWorkspacePath }, (error, stdout, stderr) => {
+                        (0, child_process_1.exec)("npm install", { cwd: currentWorkspacePath }, (error, stdout, stderr) => {
                             if (error) {
                                 vscode.window.showErrorMessage(`Error running npm install: ${error.message}`);
                                 return;
@@ -131,8 +131,8 @@ class SidebarProvider {
                     }
                     break;
                 }
-                case 'endInterview': {
-                    vscode.window.showInformationMessage('Successfully ended your interview. You can leave this session.');
+                case "endInterview": {
+                    vscode.window.showInformationMessage("Successfully ended your interview. You can leave this session.");
                     // TODO:
                     // this is the part where we have to commit their code to GitHub.
                     break;

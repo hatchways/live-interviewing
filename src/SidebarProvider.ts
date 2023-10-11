@@ -1,11 +1,11 @@
 import { stateManager } from "./context";
 import { USER_READY } from "./utils/constants";
 import { getNonce } from "./utils/getNonce";
+import { exec } from "child_process";
 import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
 
 import path = require("path");
-import { exec } from "child_process";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
@@ -47,7 +47,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           });
           if (vscode.workspace.workspaceFolders) {
             const workspace = vscode.workspace.workspaceFolders?.[0];
-            if (!workspace){
+            if (!workspace) {
               return;
             }
 
@@ -65,19 +65,29 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             let currentWorkspacePath = workspace.uri.fsPath;
             console.log(currentWorkspacePath);
             // Now, run npm install in that folder
-            exec('npm install', { cwd: currentWorkspacePath }, (error, stdout, stderr) => {
-              if (error) {
-                vscode.window.showErrorMessage(`Error running npm install: ${error.message}`);
-                return;
+            exec(
+              "npm install",
+              { cwd: currentWorkspacePath },
+              (error, stdout, stderr) => {
+                if (error) {
+                  vscode.window.showErrorMessage(
+                    `Error running npm install: ${error.message}`
+                  );
+                  return;
+                }
+                vscode.window.showInformationMessage(
+                  `Ran NPM install ${stdout}`
+                );
               }
-              vscode.window.showInformationMessage(`Ran NPM install ${stdout}`);
-            });
+            );
           }
           break;
         }
 
-        case 'endInterview': {
-          vscode.window.showInformationMessage('Successfully ended your interview. You can leave this session.');
+        case "endInterview": {
+          vscode.window.showInformationMessage(
+            "Successfully ended your interview. You can leave this session."
+          );
           // TODO:
           // this is the part where we have to commit their code to GitHub.
           break;
