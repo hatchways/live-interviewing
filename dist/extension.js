@@ -77,6 +77,7 @@ const constants_1 = __webpack_require__(4);
 const getNonce_1 = __webpack_require__(5);
 const vscode = __webpack_require__(2);
 const path = __webpack_require__(6);
+const child_process_1 = __webpack_require__(39);
 class SidebarProvider {
     constructor(_extensionUri, _sessionId, _socket, _context) {
         this._extensionUri = _extensionUri;
@@ -106,14 +107,34 @@ class SidebarProvider {
                     });
                     if (vscode.workspace.workspaceFolders) {
                         const workspace = vscode.workspace.workspaceFolders?.[0];
-                        // Todo: fetch from our API ? what file to open as the initial starting point
-                        const filePath = path.join(workspace.uri?.fsPath, "a1.txt");
+                        if (!workspace) {
+                            return;
+                        }
+                        // Automatically open to README.md file and file view.
+                        const filePath = path.join(workspace.uri?.fsPath, "index.js");
                         const openPath = vscode.Uri.file(filePath);
                         vscode.workspace.openTextDocument(openPath).then((doc) => {
                             vscode.window.showTextDocument(doc);
                         });
                         vscode.commands.executeCommand("workbench.files.action.showActiveFileInExplorer");
+                        // Run code to automatically install files in a folder
+                        let currentWorkspacePath = workspace.uri.fsPath;
+                        console.log(currentWorkspacePath);
+                        // Now, run npm install in that folder
+                        (0, child_process_1.exec)('npm install', { cwd: currentWorkspacePath }, (error, stdout, stderr) => {
+                            if (error) {
+                                vscode.window.showErrorMessage(`Error running npm install: ${error.message}`);
+                                return;
+                            }
+                            vscode.window.showInformationMessage(`Ran NPM install ${stdout}`);
+                        });
                     }
+                    break;
+                }
+                case 'endInterview': {
+                    vscode.window.showInformationMessage('Successfully ended your interview. You can leave this session.');
+                    // TODO:
+                    // this is the part where we have to commit their code to GitHub.
                     break;
                 }
                 case "onError": {

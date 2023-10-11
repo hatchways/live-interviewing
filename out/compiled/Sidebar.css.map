@@ -5,8 +5,8 @@
     "Sidebar.svelte"
   ],
   "sourcesContent": [
-    "<script lang=\"ts\">\"use strict\";\nvar _a;\nlet name = ((_a = tsvscode.getState()) === null || _a === void 0 ? void 0 : _a.userName) || \"\";\n</script>\n<div class=\"body\">\n      Input your name to start the interview\n        <input bind:value={name} placeholder={\"Your Name\"}/>\n        <button on:click={() => {\n            tsvscode.postMessage({ type: 'inputName', value: name });\n            tsvscode.setState({ userName: name})\n        }}>Submit</button>\n</div>\n<style>\n\ninput {\n    margin-top: 5px;\n}\nbutton {\n    margin-top: 5px;\n}\n.body {\n    margin-top: 10px;\n}\n   \n</style>"
+    "<script lang=\"ts\">\"use strict\";\nvar _a;\nlet name = ((_a = tsvscode.getState()) === null || _a === void 0 ? void 0 : _a.userName) || \"\";\n</script>\n<div class=\"body\">\n      Input your name to start the interview\n        <input bind:value={name} placeholder={\"Your Name\"}/>\n        <button on:click={() => {\n            tsvscode.postMessage({ type: 'inputName', value: name });\n            tsvscode.setState({ userName: name})\n        }}>Submit</button>\n\n\n        <div class=\"subheader\">\n        Once your interview is finished, press End Interview to commit your code.\n        <button on:click={() => {\n            tsvscode.postMessage({ type: 'endInterview', value: ''});\n            tsvscode.setState({ endInterview: true })\n        }}>End Interview</button>\n        </div>\n</div>\n<style>\n\ninput {\n    margin-top: 5px;\n}\nbutton {\n    margin-top: 5px;\n    margin-bottom: 5px;\n}\n.body {\n    margin-top: 10px;\n}\n\n.subheader {\n    margin-top: 20px;\n}\n   \n</style>"
   ],
   "names": [],
-  "mappings": "AAcA,mBAAM,CACF,UAAU,CAAE,GAChB,CACA,oBAAO,CACH,UAAU,CAAE,GAChB,CACA,mBAAM,CACF,UAAU,CAAE,IAChB"
+  "mappings": "AAuBA,oBAAM,CACF,UAAU,CAAE,GAChB,CACA,qBAAO,CACH,UAAU,CAAE,GAAG,CACf,aAAa,CAAE,GACnB,CACA,oBAAM,CACF,UAAU,CAAE,IAChB,CAEA,yBAAW,CACP,UAAU,CAAE,IAChB"
 }

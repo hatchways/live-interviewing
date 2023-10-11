@@ -5,6 +5,7 @@ import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
 
 import path = require("path");
+import { exec } from "child_process";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
@@ -46,8 +47,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           });
           if (vscode.workspace.workspaceFolders) {
             const workspace = vscode.workspace.workspaceFolders?.[0];
-            // Todo: fetch from our API ? what file to open as the initial starting point
-            const filePath = path.join(workspace.uri?.fsPath, "a1.txt");
+            if (!workspace){
+              return;
+            }
+
+            // Automatically open to README.md file and file view.
+            const filePath = path.join(workspace.uri?.fsPath, "index.js");
             const openPath = vscode.Uri.file(filePath);
             vscode.workspace.openTextDocument(openPath).then((doc) => {
               vscode.window.showTextDocument(doc);
@@ -55,8 +60,26 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             vscode.commands.executeCommand(
               "workbench.files.action.showActiveFileInExplorer"
             );
-          }
 
+            // Run code to automatically install files in a folder
+            let currentWorkspacePath = workspace.uri.fsPath;
+            console.log(currentWorkspacePath);
+            // Now, run npm install in that folder
+            exec('npm install', { cwd: currentWorkspacePath }, (error, stdout, stderr) => {
+              if (error) {
+                vscode.window.showErrorMessage(`Error running npm install: ${error.message}`);
+                return;
+              }
+              vscode.window.showInformationMessage(`Ran NPM install ${stdout}`);
+            });
+          }
+          break;
+        }
+
+        case 'endInterview': {
+          vscode.window.showInformationMessage('Successfully ended your interview. You can leave this session.');
+          // TODO:
+          // this is the part where we have to commit their code to GitHub.
           break;
         }
         case "onError": {

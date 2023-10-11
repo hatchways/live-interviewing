@@ -8,6 +8,15 @@
             tsvscode.postMessage({ type: 'inputName', value: name });
             tsvscode.setState({ userName: name})
         }}>Submit</button>
+
+
+        <div class="subheader">
+        Once your interview is finished, press End Interview to commit your code.
+        <button on:click={() => {
+            tsvscode.postMessage({ type: 'endInterview', value: ''});
+            tsvscode.setState({ endInterview: true })
+        }}>End Interview</button>
+        </div>
 </div>
 <style>
 
@@ -16,9 +25,14 @@ input {
 }
 button {
     margin-top: 5px;
+    margin-bottom: 5px;
 }
 .body {
     margin-top: 10px;
+}
+
+.subheader {
+    margin-top: 20px;
 }
    
 </style>
