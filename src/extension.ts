@@ -195,9 +195,9 @@ export function activate(context: vscode.ExtensionContext) {
       const currFileDecorationProvider = new FileDecorationProvider(
         socket,
         id,
-        fileUri,
         onlineUsers?.[id]?.name
       );
+      currFileDecorationProvider.updateFiles(fileUri);
       disposableCurrFileDecorationProviders[id] = currFileDecorationProvider;
     }
   };

@@ -10,14 +10,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FileDecorationProvider = void 0;
 const vscode = __webpack_require__(2);
 class FileDecorationProvider {
-    constructor(socket, userId, currentUri, name) {
+    constructor(socket, userId, name) {
         this.emitter = new vscode.EventEmitter();
         this.socket = socket;
         this.userOnFile = userId;
         this.name = name;
         this.onDidChangeFileDecorations = this.emitter.event;
         this.disposable = vscode.window.registerFileDecorationProvider(this);
-        this.emitter.fire(currentUri);
     }
     updateFiles(currentUri) {
         this.emitter.fire(currentUri);
@@ -29,26 +28,49 @@ class FileDecorationProvider {
         }
     }
     provideFileDecoration(uri) {
+        console.log("provide file decoration is called", uri.fsPath);
         let result = undefined;
         // User is not on the file
         if (this.previousUri && uri.fsPath === this.previousUri.fsPath) {
+            console.log("previous uri", uri.fsPath);
             return result;
         }
+        console.log("finding doc");
         // Assign decorator to the current file the user are clicking on
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
         const activeEditor = vscode.window.activeTextEditor;
-        const pathBeingViewed = activeEditor
-            ? activeEditor.document.uri.path
-            : null;
-        if (doc != undefined && !doc.isUntitled) {
-            if (this.userOnFile === this.socket.id) {
-                if (pathBeingViewed !== doc.fileName) {
-                    return result;
-                }
+        if (this.socket.id === this.userOnFile) {
+            const pathBeingViewed = activeEditor
+                ? activeEditor.document.uri.path
+                : null;
+            if (pathBeingViewed !== doc?.fileName) {
+                return result;
             }
-            result = new vscode.FileDecoration(this.name?.[0], `${this.name} is on this file`);
-            return result;
         }
+        result = new vscode.FileDecoration(this.name?.[0], `${this.name} is on this file`);
+        return result;
+        // if (doc != undefined && !doc.isUntitled) {
+        //   if (this.userOnFile === this.socket.id) {
+        // const pathBeingViewed = activeEditor
+        //   ? activeEditor.document.uri.path
+        //   : null;
+        //     if (pathBeingViewed !== doc.fileName) {
+        //       return result;
+        //     }
+        //   } else {
+        //     console.log('this portion is called???');
+        //     if (uri?.path && uri?.path !== activeEditor?.document?.uri.path) {
+        //       console.log('beside is called', uri.path);
+        //       vscode.window.showTextDocument(vscode.Uri.file(uri.path), { viewColumn: vscode.ViewColumn.Beside });
+        //     }
+        //   }
+        //   console.log('badge is set')
+        // result = new vscode.FileDecoration(
+        //   this.name?.[0],
+        //   `${this.name} is on this file`
+        // );
+        // return result;
+        // }
     }
     dispose() {
         // Dispose a FileDecoration when new changes appear.
@@ -11458,7 +11480,8 @@ function activate(context) {
             disposableCurrFileDecorationProviders[id].removeFiles(previousUri);
         }
         else {
-            const currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(socket, id, fileUri, onlineUsers?.[id]?.name);
+            const currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(socket, id, onlineUsers?.[id]?.name);
+            currFileDecorationProvider.updateFiles(fileUri);
             disposableCurrFileDecorationProviders[id] = currFileDecorationProvider;
         }
     };
