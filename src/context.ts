@@ -66,8 +66,6 @@ export function filesManager (context: any) {
   
     async function setFiles(value: any) {
       await context.workspaceState.update('files', value);
-
-      console.log('files are set', getFiles());
     }
 
     async function setFile(userId: string, fileUri: vscode.Uri){

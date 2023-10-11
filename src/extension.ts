@@ -210,7 +210,6 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    console.log(`calling modifyDecorator for ${id} and ${fileUri?.fsPath}`)
     const onlineUsers = get();
   
     if (id in disposableCurrFileDecorationProviders){
