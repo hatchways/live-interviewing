@@ -1,6 +1,7 @@
 import { FileDecorationProvider } from "./FileDecorationProvider";
 import { SidebarProvider } from "./SidebarProvider";
 import { filesManager, stateManager } from "./context";
+import { Map } from "./types/extensionTypes";
 import {
   SOCKET_URL,
   USER_READY,
@@ -11,7 +12,6 @@ import {
 } from "./utils/constants";
 import { io } from "socket.io-client";
 import * as vscode from "vscode";
-import { Map } from "./types/extensionTypes";
 
 // This method is called when your extension is activated.
 // Currently this is activated as soon as user open VSCode
@@ -89,14 +89,13 @@ export function activate(context: vscode.ExtensionContext) {
     const onlineUsers = get();
     if (!(id in onlineUsers)) {
       vscode.window.showInformationMessage(
-        `${name} has joined the coding interview session at ${fileUri.fsPath}.`
+        `${name} has joined the coding interview session.`
       );
       await setUser(id, { filePosition: fileUri, cursorPosition, name });
       await setFile(id, fileUri);
       modifyFileDecorator(id, fileUri, null);
       modifyCursor(id, cursorPosition);
     }
-    vscode.window.showInformationMessage(`Set file position for ${name}`);
   });
 
   // When user open a file
@@ -104,15 +103,11 @@ export function activate(context: vscode.ExtensionContext) {
     const onlineUsers = get();
 
     if (!(id in onlineUsers)) {
-      vscode.window.showInformationMessage(`No id found in online users ${id}`);
       return;
     }
 
     const previousUri = onlineUsers[id]?.filePosition;
     if (previousUri && previousUri?.fsPath) {
-      vscode.window.showInformationMessage(
-        `Previous file ${previousUri?.fsPath} removed!!!`
-      );
       await removeUserFromFile(id, previousUri);
     }
     await setUser(id, { filePosition: fileUri });
@@ -123,7 +118,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // When user moves their cursor
   socket.on(CURSOR_MOVE, ({ id, cursorPosition }) => {
-    modifyCursor(id, cursorPosition);    
+    modifyCursor(id, cursorPosition);
   });
 
   // When user left
@@ -137,6 +132,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     await removeUser(id);
     await removeUserFromFile(id, uri);
+    if (id in disposableCurrFileDecorationProviders) {
+      disposableCurrFileDecorationProviders[id].dispose();
+    }
+    if (id in disposableCursorDecorations) {
+      disposableCursorDecorations[id].dispose();
+    }
   });
 
   // When user click on a file, send it to Socket
@@ -229,15 +230,6 @@ export function activate(context: vscode.ExtensionContext) {
       border: `2px solid ${hex}`,
     });
 
-    // if (cursorPosition["filePath"] !== activeEditor?.document.uri.path) {
-    //   vscode.window.showTextDocument(
-    //     vscode.Uri.file(cursorPosition["filePath"]),
-    //     {
-    //       viewColumn: vscode.ViewColumn.One,
-    //     }
-    //   );
-    // }
-
     activeEditor?.setDecorations(cursorDecoration, [
       {
         hoverMessage: user?.name,
@@ -246,7 +238,7 @@ export function activate(context: vscode.ExtensionContext) {
     ]);
 
     disposableCursorDecorations[id] = cursorDecoration;
-  }
+  };
 }
 
 // This method is called when your extension is deactivated
