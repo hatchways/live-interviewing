@@ -11452,7 +11452,6 @@ function activate(context) {
             return;
         }
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == fileUri.toString());
-        console.log("doc", doc);
         if (!doc && id !== socket.id) {
             vscode.window.showTextDocument(vscode.Uri.file(fileUri.path));
         }
