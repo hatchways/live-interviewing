@@ -6,7 +6,7 @@ export class FileDecorationProvider
 {
   socket: Socket;
   userOnFile: string | undefined;
-  previousUri: vscode.Uri;
+  previousUri: vscode.Uri | undefined;
   name: string | undefined;
 
   disposable: vscode.Disposable;
@@ -17,7 +17,6 @@ export class FileDecorationProvider
     socket: Socket,
     userId: string,
     currentUri: vscode.Uri,
-    previousUri: vscode.Uri,
     name: string
   ) {
     this.socket = socket;
@@ -26,11 +25,17 @@ export class FileDecorationProvider
 
     this.onDidChangeFileDecorations = this.emitter.event;
     this.disposable = vscode.window.registerFileDecorationProvider(this);
-    this.previousUri = previousUri;
 
     this.emitter.fire(currentUri);
+  }
 
-    if (previousUri && previousUri?.fsPath) {
+  public updateFiles(currentUri: any) {
+    this.emitter.fire(currentUri);
+  }
+
+  public removeFiles(previousUri: any) {
+    if (previousUri) {
+      this.previousUri = previousUri;
       this.emitter.fire(previousUri);
     }
   }
@@ -48,7 +53,17 @@ export class FileDecorationProvider
       (d) => d.uri.toString() == uri.toString()
     );
 
+    const activeEditor = vscode.window.activeTextEditor;
+    const pathBeingViewed = activeEditor
+      ? activeEditor.document.uri.path
+      : null;
+
     if (doc != undefined && !doc.isUntitled) {
+      if (this.userOnFile === this.socket.id) {
+        if (pathBeingViewed !== doc.fileName) {
+          return result;
+        }
+      }
       result = new vscode.FileDecoration(
         this.name?.[0],
         `${this.name} is on this file`

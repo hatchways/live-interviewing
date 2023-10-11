@@ -10,16 +10,21 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FileDecorationProvider = void 0;
 const vscode = __webpack_require__(2);
 class FileDecorationProvider {
-    constructor(socket, userId, currentUri, previousUri, name) {
+    constructor(socket, userId, currentUri, name) {
         this.emitter = new vscode.EventEmitter();
         this.socket = socket;
         this.userOnFile = userId;
         this.name = name;
         this.onDidChangeFileDecorations = this.emitter.event;
         this.disposable = vscode.window.registerFileDecorationProvider(this);
-        this.previousUri = previousUri;
         this.emitter.fire(currentUri);
-        if (previousUri && previousUri?.fsPath) {
+    }
+    updateFiles(currentUri) {
+        this.emitter.fire(currentUri);
+    }
+    removeFiles(previousUri) {
+        if (previousUri) {
+            this.previousUri = previousUri;
             this.emitter.fire(previousUri);
         }
     }
@@ -31,7 +36,16 @@ class FileDecorationProvider {
         }
         // Assign decorator to the current file the user are clicking on
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
+        const activeEditor = vscode.window.activeTextEditor;
+        const pathBeingViewed = activeEditor
+            ? activeEditor.document.uri.path
+            : null;
         if (doc != undefined && !doc.isUntitled) {
+            if (this.userOnFile === this.socket.id) {
+                if (pathBeingViewed !== doc.fileName) {
+                    return result;
+                }
+            }
             result = new vscode.FileDecoration(this.name?.[0], `${this.name} is on this file`);
             return result;
         }
@@ -11398,6 +11412,7 @@ function activate(context) {
         const uri = onlineUsers[id]?.filePosition;
         vscode.window.showInformationMessage(`${name} has left the coding interview session.`);
         if (id in disposableCurrFileDecorationProviders) {
+            disposableCurrFileDecorationProviders[id].removeFiles(uri);
             disposableCurrFileDecorationProviders[id].dispose();
         }
         if (id in disposableCursorDecorations) {
@@ -11439,12 +11454,13 @@ function activate(context) {
         }
         const onlineUsers = get();
         if (id in disposableCurrFileDecorationProviders) {
-            disposableCurrFileDecorationProviders[id].dispose();
+            disposableCurrFileDecorationProviders[id].updateFiles(fileUri);
+            disposableCurrFileDecorationProviders[id].removeFiles(previousUri);
         }
-        const currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(socket, id, fileUri, 
-        // @ts-ignore
-        previousUri, onlineUsers?.[id]?.name);
-        disposableCurrFileDecorationProviders[id] = currFileDecorationProvider;
+        else {
+            const currFileDecorationProvider = new FileDecorationProvider_1.FileDecorationProvider(socket, id, fileUri, onlineUsers?.[id]?.name);
+            disposableCurrFileDecorationProviders[id] = currFileDecorationProvider;
+        }
     };
     const modifyCursor = (id, cursorPosition) => {
         const onlineUsers = get();

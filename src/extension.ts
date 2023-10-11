@@ -131,6 +131,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     if (id in disposableCurrFileDecorationProviders) {
+      disposableCurrFileDecorationProviders[id].removeFiles(uri);
       disposableCurrFileDecorationProviders[id].dispose();
     }
     if (id in disposableCursorDecorations) {
@@ -188,19 +189,17 @@ export function activate(context: vscode.ExtensionContext) {
     const onlineUsers = get();
 
     if (id in disposableCurrFileDecorationProviders) {
-      disposableCurrFileDecorationProviders[id].dispose();
+      disposableCurrFileDecorationProviders[id].updateFiles(fileUri);
+      disposableCurrFileDecorationProviders[id].removeFiles(previousUri);
+    } else {
+      const currFileDecorationProvider = new FileDecorationProvider(
+        socket,
+        id,
+        fileUri,
+        onlineUsers?.[id]?.name
+      );
+      disposableCurrFileDecorationProviders[id] = currFileDecorationProvider;
     }
-
-    const currFileDecorationProvider = new FileDecorationProvider(
-      socket,
-      id,
-      fileUri,
-      // @ts-ignore
-      previousUri,
-      onlineUsers?.[id]?.name
-    );
-
-    disposableCurrFileDecorationProviders[id] = currFileDecorationProvider;
   };
 
   const modifyCursor = (id: string, cursorPosition: Map) => {
