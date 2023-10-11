@@ -1,10 +1,10 @@
+import { stateManager } from "./context";
 import { USER_READY } from "./utils/constants";
 import { getNonce } from "./utils/getNonce";
 import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
 
 import path = require("path");
-import { stateManager } from "./context";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
@@ -30,7 +30,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
     webviewView.webview.onDidReceiveMessage(async (data) => {
-
       const { setUser } = stateManager(this._context);
 
       switch (data.type) {
