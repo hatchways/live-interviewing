@@ -7,7 +7,7 @@ import {
   USER_READY,
   FILE_CLICK,
   CURSOR_MOVE,
-  DISCONNECT,
+  USER_LEAVE,
   CURRENT_POSITION,
 } from "./utils/constants";
 import { io } from "socket.io-client";
@@ -122,7 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   // When user left
-  socket.on(DISCONNECT, async ({ id }) => {
+  socket.on(USER_LEAVE, async ({ id }) => {
     const onlineUsers = get();
     const name = onlineUsers[id]?.name;
     const uri = onlineUsers[id]?.filePosition;
@@ -130,14 +130,15 @@ export function activate(context: vscode.ExtensionContext) {
       `${name} has left the coding interview session.`
     );
 
-    await removeUser(id);
-    await removeUserFromFile(id, uri);
     if (id in disposableCurrFileDecorationProviders) {
       disposableCurrFileDecorationProviders[id].dispose();
     }
     if (id in disposableCursorDecorations) {
       disposableCursorDecorations[id].dispose();
     }
+
+    await removeUser(id);
+    await removeUserFromFile(id, uri);
   });
 
   // When user click on a file, send it to Socket

@@ -29,7 +29,6 @@ class FileDecorationProvider {
         if (this.previousUri && uri.fsPath === this.previousUri.fsPath) {
             return result;
         }
-        console.log(`attempting to find doc for ${uri.fsPath}`);
         // Assign decorator to the current file the user are clicking on
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
         if (doc != undefined && !doc.isUntitled) {
@@ -161,12 +160,12 @@ exports.SidebarProvider = SidebarProvider;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SOCKET_URL = exports.CURRENT_POSITION = exports.DISCONNECT = exports.CURSOR_MOVE = exports.FILE_CLICK = exports.USER_READY = void 0;
+exports.SOCKET_URL = exports.CURRENT_POSITION = exports.USER_LEAVE = exports.CURSOR_MOVE = exports.FILE_CLICK = exports.USER_READY = void 0;
 // Socket events
 exports.USER_READY = "userReady";
 exports.FILE_CLICK = "fileClick";
 exports.CURSOR_MOVE = "cursorMove";
-exports.DISCONNECT = "userLeave";
+exports.USER_LEAVE = "userLeave";
 exports.CURRENT_POSITION = "currentPosition";
 exports.SOCKET_URL = "https://8c20-173-33-99-170.ngrok-free.app";
 
@@ -11393,19 +11392,19 @@ function activate(context) {
         modifyCursor(id, cursorPosition);
     });
     // When user left
-    socket.on(constants_1.DISCONNECT, async ({ id }) => {
+    socket.on(constants_1.USER_LEAVE, async ({ id }) => {
         const onlineUsers = get();
         const name = onlineUsers[id]?.name;
         const uri = onlineUsers[id]?.filePosition;
         vscode.window.showInformationMessage(`${name} has left the coding interview session.`);
-        await removeUser(id);
-        await removeUserFromFile(id, uri);
         if (id in disposableCurrFileDecorationProviders) {
             disposableCurrFileDecorationProviders[id].dispose();
         }
         if (id in disposableCursorDecorations) {
             disposableCursorDecorations[id].dispose();
         }
+        await removeUser(id);
+        await removeUserFromFile(id, uri);
     });
     // When user click on a file, send it to Socket
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {

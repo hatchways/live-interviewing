@@ -43,8 +43,6 @@ export class FileDecorationProvider
       return result;
     }
 
-    console.log(`attempting to find doc for ${uri.fsPath}`);
-
     // Assign decorator to the current file the user are clicking on
     const doc = vscode.workspace.textDocuments.find(
       (d) => d.uri.toString() == uri.toString()
