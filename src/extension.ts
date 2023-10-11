@@ -1,15 +1,17 @@
 import { FileDecorationProvider } from "./FileDecorationProvider";
 import { SidebarProvider } from "./SidebarProvider";
+import { filesManager, stateManager } from "./context";
 import {
   SOCKET_URL,
   USER_READY,
   FILE_CLICK,
   CURSOR_MOVE,
   DISCONNECT,
-  JOIN_SESSION,
+  CURRENT_POSITION,
 } from "./utils/constants";
 import { io } from "socket.io-client";
 import * as vscode from "vscode";
+
 
 // This method is called when your extension is activated.
 // Currently this is activated as soon as user open VSCode
@@ -24,13 +26,19 @@ export function activate(context: vscode.ExtensionContext) {
   const sessionId = workspace?.name || "";
 
   const socket = io(SOCKET_URL);
-  socket.emit(JOIN_SESSION, sessionId);
+
+  const { get, setUser, removeUser } = stateManager(context);
+  const { getFiles, setFile, removeUserFromFile } = filesManager(context);
+
+  let disposableCurrFileDecorationProviders: any = {};
+  
 
   // Sidebar
   const sidebarProvider = new SidebarProvider(
     context.extensionUri,
     sessionId,
-    socket
+    socket,
+    context
   );
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -57,82 +65,105 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
   vscode.commands.executeCommand("hatchways-sidebar.focus");
 
-  // When user submitted their name
-  socket.on(USER_READY, (message) => {
-    vscode.window.showInformationMessage(message);
+  // When a new user joined the interview
+  socket.on(USER_READY, async ({ id, name, color}) => {
+    const onlineUsers = get();
+    vscode.window.showInformationMessage(`${name} has joined the coding interview session.`);
+    if (socket.id in onlineUsers && id !== socket.id){
+      const myData = onlineUsers[socket.id];
+      const { name, currentPosition, filePosition } = myData
+      socket.emit(CURRENT_POSITION, { sessionId, name, currentPosition, fileUri: filePosition})
+    } else {
+      vscode.window.showInformationMessage(`No information found for currentPosition ${socket.id}`);
+    }
+    await setUser(id, {name, color}); 
   });
 
-  // When user left
-  socket.on(DISCONNECT, (message) => {
-    vscode.window.showInformationMessage(message);
+  // When current user received other user's data
+  
+  socket.on(CURRENT_POSITION, async ({ id, name, fileUri, cursorPosition }) => {
+    const onlineUsers = get();
+    if (!(id in onlineUsers)){
+      vscode.window.showInformationMessage(`${name} has joined the coding interview session at ${fileUri.fsPath}.`);
+      await setUser(id, {filePosition: fileUri, cursorPosition, name}); 
+      await setFile(id, fileUri);
+    }
+
+    modifyFileDecorator(id, fileUri);
+    vscode.window.showInformationMessage(`Set file position for ${name}`);
   });
+
 
   // When user open a file
-  let disposableCurrFileDecorationProviders: any = [];
-  socket.on(FILE_CLICK, (value) => {
-    for (const d of disposableCurrFileDecorationProviders) {
-      d.dispose();
+  socket.on(FILE_CLICK, async ({id, fileUri}) => {
+    const onlineUsers = get();
+    const previousUri = id in onlineUsers ? onlineUsers[id]?.filePosition : null;
+    if (previousUri && previousUri?.fsPath){
+      vscode.window.showInformationMessage(`Previous file ${previousUri.fsPath} removed for ${onlineUsers[id]?.name}`);
+      await removeUserFromFile(id, previousUri);
     }
 
-    // For each online user, register a FileDecorationProvider
-    disposableCurrFileDecorationProviders = [];
-    for (const userId in value["allOnlineUsers"]) {
-      const currFileDecorationProvider = new FileDecorationProvider(
-        socket,
-        value,
-        userId
-      );
-      disposableCurrFileDecorationProviders.push(currFileDecorationProvider);
-    }
+    modifyFileDecorator(id, fileUri);
   });
 
   // When user click on a line
-  let disposableCursorDecorations: any = {};
-  socket.on(CURSOR_MOVE, (data) => {
-    const { userPerformingThisAction, cursorPosition, allOnlineUsers } = data;
+  // let disposableCursorDecorations: any = {};
+  // socket.on(CURSOR_MOVE, (data) => {
+  //   const { userPerformingThisAction, cursorPosition, allOnlineUsers } = data;
 
-    // Remove previous cursor because the user is moving onto a new file now.
-    if (userPerformingThisAction in disposableCursorDecorations) {
-      disposableCursorDecorations[userPerformingThisAction].dispose();
-    }
+  //   // Remove previous cursor because the user is moving onto a new file now.
+  //   if (userPerformingThisAction in disposableCursorDecorations) {
+  //     disposableCursorDecorations[userPerformingThisAction].dispose();
+  //   }
 
-    let startPosition: vscode.Position = new vscode.Position(
-      cursorPosition["startLine"],
-      cursorPosition["startCharacter"]
-    );
-    let endPosition: vscode.Position = new vscode.Position(
-      cursorPosition["endLine"],
-      cursorPosition["endCharacter"]
-    );
+  //   let startPosition: vscode.Position = new vscode.Position(
+  //     cursorPosition["startLine"],
+  //     cursorPosition["startCharacter"]
+  //   );
+  //   let endPosition: vscode.Position = new vscode.Position(
+  //     cursorPosition["endLine"],
+  //     cursorPosition["endCharacter"]
+  //   );
 
-    const user = allOnlineUsers[userPerformingThisAction];
-    const { r, g, b } = user?.color;
-    const hex =
-      "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+  //   const user = allOnlineUsers[userPerformingThisAction];
+  //   const { r, g, b } = user?.color;
+  //   const hex =
+  //     "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
 
-    const activeEditor = vscode.window.activeTextEditor;
-    const cursorDecoration = vscode.window.createTextEditorDecorationType({
-      backgroundColor: `rgba(${r}, ${g}, ${b}, 0.3)`,
-      border: `2px solid ${hex}`,
-    });
+  //   const activeEditor = vscode.window.activeTextEditor;
+  //   const cursorDecoration = vscode.window.createTextEditorDecorationType({
+  //     backgroundColor: `rgba(${r}, ${g}, ${b}, 0.3)`,
+  //     border: `2px solid ${hex}`,
+  //   });
 
-    if (cursorPosition["filePath"] !== activeEditor?.document.uri.path) {
-      vscode.window.showTextDocument(
-        vscode.Uri.file(cursorPosition["filePath"]),
-        {
-          viewColumn: vscode.ViewColumn.One,
-        }
-      );
-    }
+  //   if (cursorPosition["filePath"] !== activeEditor?.document.uri.path) {
+  //     vscode.window.showTextDocument(
+  //       vscode.Uri.file(cursorPosition["filePath"]),
+  //       {
+  //         viewColumn: vscode.ViewColumn.One,
+  //       }
+  //     );
+  //   }
 
-    activeEditor?.setDecorations(cursorDecoration, [
-      {
-        hoverMessage: user?.name,
-        range: new vscode.Range(startPosition, endPosition),
-      },
-    ]);
+  //   activeEditor?.setDecorations(cursorDecoration, [
+  //     {
+  //       hoverMessage: user?.name,
+  //       range: new vscode.Range(startPosition, endPosition),
+  //     },
+  //   ]);
 
-    disposableCursorDecorations[userPerformingThisAction] = cursorDecoration;
+  //   disposableCursorDecorations[userPerformingThisAction] = cursorDecoration;
+  // });
+
+  // When user left
+  socket.on(DISCONNECT, async({ id }) => {
+    const onlineUsers = get();
+    const name = onlineUsers[id]?.name;
+    const uri = onlineUsers[id]?.filePosition;
+    vscode.window.showInformationMessage(`${name} has left the coding interview session.`);
+
+    await removeUser(id);
+    await removeUserFromFile(id, uri)
   });
 
   // When user click on a file, send it to Socket
@@ -140,6 +171,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       const doc = editor?.document;
       if (doc?.uri) {
+        setUser(socket.id, { filePosition: doc?.uri });
         socket.emit(FILE_CLICK, { sessionId, fileUri: doc?.uri });
       }
     })
@@ -147,20 +179,46 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection((event) => {
+      const cursorPosition = {
+        startLine: event.selections[0].start.line,
+        startCharacter: event.selections[0].start.character,
+        endLine: event.selections[0].end.line,
+        endCharacter: event.selections[0].end.character,
+        filePath: event.textEditor.document.uri.path,
+      }
+      setUser(socket.id, { cursorPosition })
+
       // Send new cursor position
       socket.emit(CURSOR_MOVE, {
         sessionId,
-        cursorPosition: {
-          startLine: event.selections[0].start.line,
-          startCharacter: event.selections[0].start.character,
-          endLine: event.selections[0].end.line,
-          endCharacter: event.selections[0].end.character,
-          filePath: event.textEditor.document.uri.path,
-        },
+        cursorPosition
       });
     })
   );
+
+  // Function to modify file decoration
+  const modifyFileDecorator = async (id: string, fileUri: vscode.Uri) => {
+    const onlineUsers = get();
+    const previousUri = id in onlineUsers ? onlineUsers[id]?.filePosition : null;
+   
+    if (id in disposableCurrFileDecorationProviders){
+      disposableCurrFileDecorationProviders[id].dispose();
+    }
+  
+    const currFileDecorationProvider = new FileDecorationProvider(
+      socket,
+      id,
+      fileUri,
+      previousUri,
+      onlineUsers
+    );
+  
+    disposableCurrFileDecorationProviders[id] = currFileDecorationProvider;
+  }
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+
+

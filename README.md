@@ -26,3 +26,6 @@ vsce package
 You should see a file titled `hatchways-live-interviewing-0.0.1.vsix` being generated.
 
 Go to Visual Studio Code, click on Extensions. Click on the three dots "..." on the topmost right corner > Install from VSIX > Select hatchways-live-interviewing-0.0.1.vsix
+
+## To Test
+Since VSCode automatically open only one window for the same repository, to create two workspaces, do ⌘ + Shift + P (on MacOS) to open Command Palette then select "Workspaces: duplicate as workspace in new window"
