@@ -60,7 +60,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
               (error, stdout, stderr) => {
                 if (error) {
                   vscode.window.showErrorMessage(
-                    `Error running npm install: ${error.message}`
+                    `Error running ${process.env.RUN_COMMAND}: ${error.message}`
                   );
                   return;
                 }
