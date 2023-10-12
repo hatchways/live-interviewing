@@ -45,13 +45,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             name: data.value,
           });
           if (vscode.workspace.workspaceFolders) {
-            const workspace = vscode.workspace.workspaceFolders?.[0];
+            // const workspace = vscode.workspace.workspaceFolders?.[0];
             // Todo: fetch from our API ? what file to open as the initial starting point
-            const filePath = path.join(workspace.uri?.fsPath, "a1.txt");
-            const openPath = vscode.Uri.file(filePath);
-            vscode.workspace.openTextDocument(openPath).then((doc) => {
-              vscode.window.showTextDocument(doc);
-            });
+            // const filePath = path.join(workspace.uri?.fsPath);
+            // const openPath = vscode.Uri.file(filePath);
+            // vscode.workspace.openTextDocument(openPath).then((doc) => {
+            //   vscode.window.showTextDocument(doc);
+            // });
             vscode.commands.executeCommand(
               "workbench.files.action.showActiveFileInExplorer"
             );

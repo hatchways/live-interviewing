@@ -135,6 +135,7 @@
   },
   "dependencies": {
     "@vscode/webview-ui-toolkit": "^1.2.2",
+    "dotenv": "^16.3.1",
     "socket.io-client": "^4.7.2"
   }
 }

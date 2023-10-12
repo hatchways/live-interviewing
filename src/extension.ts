@@ -3,7 +3,6 @@ import { SidebarProvider } from "./SidebarProvider";
 import { filesManager, stateManager } from "./context";
 import { Map } from "./types/extensionTypes";
 import {
-  SOCKET_URL,
   USER_READY,
   FILE_CLICK,
   CURSOR_MOVE,
@@ -13,18 +12,22 @@ import {
 import { io } from "socket.io-client";
 import * as vscode from "vscode";
 
+// Initialize env vars
+import 'dotenv/config'
+const path = require('path');
+require("dotenv").config({ path: path.resolve(__dirname, '..', '.env') });
+
 // This method is called when your extension is activated.
 // Currently this is activated as soon as user open VSCode
 export function activate(context: vscode.ExtensionContext) {
+
   // Autosave
   const config = vscode.workspace.getConfiguration("files");
   config.update("autoSave", "afterDelay", true);
   config.update("autoSaveDelay", 100, true);
 
-  const workspace = vscode.workspace.workspaceFolders?.[0];
-  const sessionId = workspace?.name || "";
-
-  const socket = io(SOCKET_URL);
+  const sessionId = process.env.SESSION_ID || "";
+  const socket = io(process.env.SOCKET_URL || "");
 
   const { get, setUser, removeUser } = stateManager(context);
   const { setFile, removeUserFromFile } = filesManager(context);
