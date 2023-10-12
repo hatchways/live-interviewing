@@ -5,8 +5,6 @@ import { exec } from "child_process";
 import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
 
-import path = require("path");
-
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
   _doc?: vscode.TextDocument;
@@ -46,27 +44,18 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             name: data.value,
           });
           if (vscode.workspace.workspaceFolders) {
-            const workspace = vscode.workspace.workspaceFolders?.[0];
-            if (!workspace) {
-              return;
-            }
-
-            // Automatically open to README.md file and file view.
-            const filePath = path.join(workspace.uri?.fsPath, "index.js");
-            const openPath = vscode.Uri.file(filePath);
-            vscode.workspace.openTextDocument(openPath).then((doc) => {
-              vscode.window.showTextDocument(doc);
-            });
             vscode.commands.executeCommand(
               "workbench.files.action.showActiveFileInExplorer"
             );
 
             // Run code to automatically install files in a folder
-            let currentWorkspacePath = workspace.uri.fsPath;
-            console.log(currentWorkspacePath);
-            // Now, run npm install in that folder
+            const workspace = vscode.workspace.workspaceFolders?.[0];
+            const currentWorkspacePath = workspace.uri.fsPath;
+            if (!process.env.RUN_COMMAND){
+              return;
+            }
             exec(
-              "npm install",
+              process.env.RUN_COMMAND,
               { cwd: currentWorkspacePath },
               (error, stdout, stderr) => {
                 if (error) {
@@ -76,7 +65,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                   return;
                 }
                 vscode.window.showInformationMessage(
-                  `Ran NPM install ${stdout}`
+                  `Run ${process.env.RUN_COMMAND} with output ${stdout}`
                 );
               }
             );
