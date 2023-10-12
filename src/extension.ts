@@ -9,25 +9,26 @@ import {
   USER_LEAVE,
   CURRENT_POSITION,
 } from "./utils/constants";
+// Initialize env vars
+import "dotenv/config";
 import { io } from "socket.io-client";
 import * as vscode from "vscode";
 
-// Initialize env vars
-import 'dotenv/config'
-const path = require('path');
-require("dotenv").config({ path: path.resolve(__dirname, '..', '.env') });
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
 // This method is called when your extension is activated.
 // Currently this is activated as soon as user open VSCode
 export function activate(context: vscode.ExtensionContext) {
-
   // Autosave
   const config = vscode.workspace.getConfiguration("files");
   config.update("autoSave", "afterDelay", true);
   config.update("autoSaveDelay", 100, true);
 
   const sessionId = process.env.SESSION_ID || "";
-  const socket = io(process.env.SOCKET_URL || "");
+  const socket = io(
+    "https://socket-server-dot-live-sessions-staging.uc.r.appspot.com"
+  );
 
   const { get, setUser, removeUser } = stateManager(context);
   const { setFile, removeUserFromFile } = filesManager(context);
@@ -188,12 +189,12 @@ export function activate(context: vscode.ExtensionContext) {
     if (!fileUri) {
       return;
     }
-
-    const doc = vscode.workspace.textDocuments.find(
-      (d) => d.uri.toString() == fileUri.toString()
-    );
-    if (!doc && id !== socket.id) {
-      vscode.window.showTextDocument(vscode.Uri.file(fileUri.path));
+    const activeEditor = vscode.window.activeTextEditor;
+    const pathBeingViewed = activeEditor
+      ? activeEditor.document.uri.path
+      : null;
+    if (pathBeingViewed !== fileUri?.path) {
+      await vscode.window.showTextDocument(vscode.Uri.file(fileUri.path));
     }
     const onlineUsers = get();
 

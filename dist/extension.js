@@ -34,17 +34,11 @@ class FileDecorationProvider {
             return result;
         }
         const activeEditor = vscode.window.activeTextEditor;
-        const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == uri.toString());
-        if (!doc || doc == undefined || doc.isUntitled) {
+        const pathBeingViewed = activeEditor
+            ? activeEditor.document.uri.path
+            : null;
+        if (pathBeingViewed !== uri?.path) {
             return;
-        }
-        if (this.socket.id === this.userOnFile) {
-            const pathBeingViewed = activeEditor
-                ? activeEditor.document.uri.path
-                : null;
-            if (pathBeingViewed !== doc?.fileName) {
-                return;
-            }
         }
         result = new vscode.FileDecoration(this.name?.[0], `${this.name} is on this file`);
         return result;
@@ -104,13 +98,6 @@ class SidebarProvider {
                         name: data.value,
                     });
                     if (vscode.workspace.workspaceFolders) {
-                        // const workspace = vscode.workspace.workspaceFolders?.[0];
-                        // Todo: fetch from our API ? what file to open as the initial starting point
-                        // const filePath = path.join(workspace.uri?.fsPath);
-                        // const openPath = vscode.Uri.file(filePath);
-                        // vscode.workspace.openTextDocument(openPath).then((doc) => {
-                        //   vscode.window.showTextDocument(doc);
-                        // });
                         vscode.commands.executeCommand("workbench.files.action.showActiveFileInExplorer");
                     }
                     break;
@@ -11719,12 +11706,12 @@ const FileDecorationProvider_1 = __webpack_require__(1);
 const SidebarProvider_1 = __webpack_require__(3);
 const context_1 = __webpack_require__(7);
 const constants_1 = __webpack_require__(4);
-const socket_io_client_1 = __webpack_require__(9);
-const vscode = __webpack_require__(2);
 // Initialize env vars
 __webpack_require__(73);
+const socket_io_client_1 = __webpack_require__(9);
+const vscode = __webpack_require__(2);
 const path = __webpack_require__(6);
-(__webpack_require__(74).config)({ path: path.resolve(__dirname, '..', '.env') });
+(__webpack_require__(74).config)({ path: path.resolve(__dirname, "..", ".env") });
 // This method is called when your extension is activated.
 // Currently this is activated as soon as user open VSCode
 function activate(context) {
@@ -11733,7 +11720,7 @@ function activate(context) {
     config.update("autoSave", "afterDelay", true);
     config.update("autoSaveDelay", 100, true);
     const sessionId = process.env.SESSION_ID || "";
-    const socket = (0, socket_io_client_1.io)(process.env.SOCKET_URL || "");
+    const socket = (0, socket_io_client_1.io)("https://socket-server-dot-live-sessions-staging.uc.r.appspot.com");
     const { get, setUser, removeUser } = (0, context_1.stateManager)(context);
     const { setFile, removeUserFromFile } = (0, context_1.filesManager)(context);
     // The key is the user's socket id, the value is their file and cursor positions.
@@ -11841,9 +11828,12 @@ function activate(context) {
         if (!fileUri) {
             return;
         }
-        const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() == fileUri.toString());
-        if (!doc && id !== socket.id) {
-            vscode.window.showTextDocument(vscode.Uri.file(fileUri.path));
+        const activeEditor = vscode.window.activeTextEditor;
+        const pathBeingViewed = activeEditor
+            ? activeEditor.document.uri.path
+            : null;
+        if (pathBeingViewed !== fileUri?.path) {
+            await vscode.window.showTextDocument(vscode.Uri.file(fileUri.path));
         }
         const onlineUsers = get();
         if (id in disposableCurrFileDecorationProviders) {

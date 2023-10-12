@@ -43,20 +43,11 @@ export class FileDecorationProvider
 
     const activeEditor = vscode.window.activeTextEditor;
 
-    const doc = vscode.workspace.textDocuments.find(
-      (d) => d.uri.toString() == uri.toString()
-    );
-    if (!doc || doc == undefined || doc.isUntitled) {
+    const pathBeingViewed = activeEditor
+      ? activeEditor.document.uri.path
+      : null;
+    if (pathBeingViewed !== uri?.path) {
       return;
-    }
-
-    if (this.socket.id === this.userOnFile) {
-      const pathBeingViewed = activeEditor
-        ? activeEditor.document.uri.path
-        : null;
-      if (pathBeingViewed !== doc?.fileName) {
-        return;
-      }
     }
 
     result = new vscode.FileDecoration(
