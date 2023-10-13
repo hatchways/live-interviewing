@@ -408,7 +408,7 @@ var app = (function () {
     			button0.textContent = "Submit";
     			t3 = space();
     			div0 = element("div");
-    			t4 = text("Once your interview is finished, press End Interview to commit your code.\n        ");
+    			t4 = text("Once your live coding session is finished, press End Interview to commit your code.\n        ");
     			button1 = element("button");
     			button1.textContent = "End Interview";
     			attr_dev(input, "placeholder", "Your Name");
@@ -417,7 +417,7 @@ var app = (function () {
     			attr_dev(button0, "class", "svelte-12qa32f");
     			add_location(button0, file, 7, 8, 279);
     			attr_dev(button1, "class", "svelte-12qa32f");
-    			add_location(button1, file, 15, 8, 575);
+    			add_location(button1, file, 15, 8, 585);
     			attr_dev(div0, "class", "subheader svelte-12qa32f");
     			add_location(div0, file, 13, 8, 461);
     			attr_dev(div1, "class", "body svelte-12qa32f");

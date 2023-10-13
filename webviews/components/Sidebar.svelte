@@ -11,7 +11,7 @@
 
 
         <div class="subheader">
-        Once your interview is finished, press End Interview to commit your code.
+        Once your live coding session is finished, press End Interview to commit your code.
         <button on:click={() => {
             tsvscode.postMessage({ type: 'endInterview', value: ''});
             tsvscode.setState({ endInterview: true })
