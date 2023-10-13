@@ -47,28 +47,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             vscode.commands.executeCommand(
               "workbench.files.action.showActiveFileInExplorer"
             );
-
             // Run code to automatically install files in a folder
-            const workspace = vscode.workspace.workspaceFolders?.[0];
-            const currentWorkspacePath = workspace.uri.fsPath;
-            if (!process.env.RUN_COMMAND){
-              return;
+            if (process.env.INSTALL_COMMAND) {
+              this._runCommand(process.env.INSTALL_COMMAND);
             }
-            exec(
-              process.env.RUN_COMMAND,
-              { cwd: currentWorkspacePath },
-              (error, stdout, stderr) => {
-                if (error) {
-                  vscode.window.showErrorMessage(
-                    `Error running ${process.env.RUN_COMMAND}: ${error.message}`
-                  );
-                  return;
-                }
-                vscode.window.showInformationMessage(
-                  `Run ${process.env.RUN_COMMAND} with output ${stdout}`
-                );
-              }
-            );
           }
           break;
         }
@@ -77,8 +59,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           vscode.window.showInformationMessage(
             "Successfully ended your interview. You can leave this session."
           );
-          // TODO:
-          // this is the part where we have to commit their code to GitHub.
+          this._runCommand(
+            `git add . && git commit -m 'Upload solution' && git push`
+          );
           break;
         }
         case "onError": {
@@ -94,6 +77,28 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   public revive(panel: vscode.WebviewView) {
     this._view = panel;
+  }
+
+  private _runCommand(command: string) {
+    const workspace = vscode.workspace.workspaceFolders?.[0];
+    if (!workspace) {
+      return;
+    }
+    const currentWorkspacePath = workspace.uri.fsPath;
+    if (!command) {
+      return;
+    }
+    exec(command, { cwd: currentWorkspacePath }, (error, stdout, stderr) => {
+      if (error) {
+        vscode.window.showErrorMessage(
+          `Error running ${command}: ${error.message}`
+        );
+        return;
+      }
+      vscode.window.showInformationMessage(
+        `Run ${command} with output ${stdout}`
+      );
+    });
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
