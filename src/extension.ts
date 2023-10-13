@@ -26,9 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
   config.update("autoSaveDelay", 100, true);
 
   const sessionId = process.env.SESSION_ID || "";
-  const socket = io(
-    "https://socket-server-dot-live-sessions-staging.uc.r.appspot.com"
-  );
+  const socket = io(process.env.SOCKET_URL || "");
 
   const { get, setUser, removeUser } = stateManager(context);
   const { setFile, removeUserFromFile } = filesManager(context);
@@ -54,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Walkthrough Screen
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "hatchways-live-interviewing.welcome",
+      "live-session-vscode-extension.welcome",
       () => {
         vscode.commands.executeCommand(
           `workbench.action.openWalkthrough`,
@@ -66,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // Automatically open Live Interview + Sidebar
-  vscode.commands.executeCommand("hatchways-live-interviewing.welcome");
+  vscode.commands.executeCommand("live-session-vscode-extension.welcome");
   vscode.commands.executeCommand("hatchways-sidebar.focus");
 
   // When a new user joined the interview

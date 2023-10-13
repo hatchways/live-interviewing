@@ -18,14 +18,14 @@ Go to `extension.ts` then press F5.
 ```
 npm install -g @vscode/vsce
 
-cd live-interviewing
-
 vsce package
 ```
 
-You should see a file titled `hatchways-live-interviewing-0.0.1.vsix` being generated.
+You should see a .vsix file being generated.
 
-Go to Visual Studio Code, click on Extensions. Click on the three dots "..." on the topmost right corner > Install from VSIX > Select hatchways-live-interviewing-0.0.1.vsix
+Go to Visual Studio Code, click on Extensions. Click on the three dots "..." on the topmost right corner > Install from VSIX > Select the .vsix file.
+
+When releasing a new version, be sure to also replace the existing latest release and tag with a new version. When attaching the .vsix file to the latest release, ensure the file is named live-session-vscode-extension.vsix without a version number.
 
 ## To Test
 
