@@ -1,6 +1,7 @@
 import { stateManager } from "./context";
 import { USER_READY } from "./utils/constants";
 import { getNonce } from "./utils/getNonce";
+import { exec } from "child_process";
 import { Socket } from "socket.io-client";
 import * as vscode from "vscode";
 
@@ -46,8 +47,21 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             vscode.commands.executeCommand(
               "workbench.files.action.showActiveFileInExplorer"
             );
+            // Run code to automatically install files in a folder
+            if (process.env.INSTALL_COMMAND) {
+              this._runCommand(process.env.INSTALL_COMMAND);
+            }
           }
+          break;
+        }
 
+        case "endInterview": {
+          vscode.window.showInformationMessage(
+            "Successfully ended your interview. You can leave this session."
+          );
+          this._runCommand(
+            `git add . && git commit -m 'Upload solution' && git push`
+          );
           break;
         }
         case "onError": {
@@ -63,6 +77,28 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   public revive(panel: vscode.WebviewView) {
     this._view = panel;
+  }
+
+  private _runCommand(command: string) {
+    const workspace = vscode.workspace.workspaceFolders?.[0];
+    if (!workspace) {
+      return;
+    }
+    const currentWorkspacePath = workspace.uri.fsPath;
+    if (!command) {
+      return;
+    }
+    exec(command, { cwd: currentWorkspacePath }, (error, stdout, stderr) => {
+      if (error) {
+        vscode.window.showErrorMessage(
+          `Error running ${command}: ${error.message}`
+        );
+        return;
+      }
+      vscode.window.showInformationMessage(
+        `Run ${command} with output ${stdout}`
+      );
+    });
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
