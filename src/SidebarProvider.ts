@@ -128,7 +128,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           <link href="${mainStyleUri}" rel="stylesheet">
           <script nonce="${nonce}">
           const tsvscode = acquireVsCodeApi();
-          const globalName = "Minh"
           </script>
        </head>
        <body>
